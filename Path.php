@@ -37,8 +37,26 @@ class Path {
 		//Соответственно текущий файл может быть подключен только в корень проекта (chdir тогда не меняется).
 
 		//Альтернативный вариант полагать, что корень сервера совпадает с корнем проекта тогда работал путь '/'.$src но такого соглашения нет.
+		$ext=static::getExt($src);
+		if ($ext=='php') return static::inc($src);
+		
 		header('Location: '.static::$root.$src);
 		return true;
+	}
+	public static function inc($src){
+		$p=explode('?', $src, 2);
+		$query = (sizeof($p) == 2) ? '?'.$p[1] : '';
+		$getstr = preg_replace("/^\?/", '', $query);
+		parse_str($getstr, $get);
+		if (!$get) $get = array();
+		$GET = $_GET;
+		$_GET = $get;
+		$REQUEST = $_REQUEST;
+		$_REQUEST = array_merge($_GET, $_POST, $_COOKIE);
+		$SERVER_QUERY_STRING = $_SERVER['QUERY_STRING'];
+		$_SERVER['QUERY_STRING'] = $getstr;
+		//chdir($p['folder']);
+		return include $p[0];
 	}
 	public static function init($query)
 	{
@@ -153,9 +171,10 @@ class Path {
 	}
 	public static function mkdir($src) //forFS
 	{
+		if (!is_file('vendor/autoload.php')) throw new Exception("You should setting chdir() on site root directory with vendor/ folder"); 
 		$conf=static::$conf;
 		if(!$conf['fs']) return;
-		$src=static::get($src);
+		$src=static::resolve($src);
 		if (!is_dir($src)) return mkdir($src);
 		return true;
 	}
