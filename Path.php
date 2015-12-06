@@ -3,7 +3,22 @@ namespace infrajs\path;
 use infrajs\once\Once;
 
 class Path {
-	public static $conf = array();
+	public static $conf = array(
+		'data' => 'data/',
+		'cache' => 'cache/',
+		'fs' => true,
+		'search' => array(
+			'vendor/infrajs/',
+			'vendor/components/',
+			'bower_components/'
+		),
+		/**
+		 * Одно расширение, может содержать файлы для  подмены другого расширения. 
+		 * Записывается так "catalog"=>array("vendor/infrajs/cards/")
+		 * Файлы в папке *catalog/ будудут заменены на файлы в vendor/infrajs/cards/catalog/ при наличии
+		 **/
+		'external' => array()
+	);
 	/**
 	 * Path::init($query) запускается только из корня проекта. 
 	 * $query может взять из QUERY_STRING или из URI_REQUEST если используется modrewrite
@@ -173,20 +188,3 @@ class Path {
 		return $src;
 	}
 }
-
-Path::$conf = array(
-	'data' => 'data/',
-	'cache' => 'cache/',
-	'fs' => true,
-	'search' => array(
-		'vendor/infrajs/',
-		'vendor/components/',
-		'bower_components/'
-	),
-	/**
-	 * Одно расширение, может подменить файлы другого расширения. 
-	 * Записывается так "catalog"=>array("vendor/infrajs/cards/")
-	 * Файлы в папке *catalog/ будудут заменены на файлы в vendor/infrajs/cards/catalog/ при наличии
-	 **/
-	'external' => array()
-);

@@ -2,7 +2,7 @@
 namespace infrajs\path;
 use infrajs\infra\Config;
 
-$conf=Config::get('path');
+$conf=Infra::config('path');
 
 Path::$conf=array_merge(Path::$conf, $conf);
 
