@@ -1,7 +1,6 @@
 <?php
 namespace infrajs\path;
 use infrajs\once\Once;
-
 class Path {
 	public static $conf = array(
 		'data' => 'data/',
@@ -205,5 +204,45 @@ class Path {
 		else if($ch == '~') return static::$conf['data'].substr($src, 1);	
 		else if($ch == '|') return static::$conf['cache'].substr($src, 1);	
 		return $src;
+	}
+	public static function req($path)
+	{
+		$args=array($path);
+		Once::exec('Load::req', function($path) {
+			$rpath = Path::theme($path);
+			if (!$rpath) throw new \Exception('Load::req - не найден путь '.$path);
+			require_once $rpath;//Просто require позволяет загрузить самого себя. А мы текущий скрипт не добавляем в список подключённых
+		}, $args);
+	}
+	/**
+	 * Удалить или очистить дирректорию
+	 *
+	 **/
+	public static function fullrmdir($delfile, $ischild = true)
+	{
+		if (!static::$conf['fs']) throw new Exception('Work with filesystem forbbiden conf.path.fs');
+		$delfile = Path::theme($delfile);
+		if (file_exists($delfile)) {		
+			if (is_dir($delfile)) {
+				$handle = opendir($delfile);
+				while ($filename = readdir($handle)) {
+					if ($filename != '.' && $filename != '..') {
+						$src = $delfile.$filename;
+						if (is_dir($src)) $src .= '/';
+						$r=static::fullrmdir($src, true);
+						if(!$r)return false;
+					}
+				}
+				closedir($handle);
+				if ($ischild) {
+					return rmdir($delfile);
+				}
+
+				return true;
+			} else {
+				return unlink($delfile);
+			}
+		}
+		return true;
 	}
 }

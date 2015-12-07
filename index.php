@@ -1,15 +1,12 @@
 <?php
 namespace infrajs\path;
 
-$root = './';
 if (!is_file('vendor/autoload.php')) {
-	$root = '../../../';
-	chdir($root);	
+	chdir('../../../');	
+	require_once('vendor/autoload.php');
+	Path::$root='../../../';//Если скрипт будет подключен другим файлом не в корне сайта без указания $root, даже если chdir есть редирект будет неправильным
 }
-require_once('vendor/autoload.php');
-Path::$root=$root;
 
 $query=urldecode($_SERVER['QUERY_STRING']);
-
 
 return Path::go($query);
