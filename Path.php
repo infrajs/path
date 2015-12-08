@@ -205,6 +205,10 @@ class Path {
 		else if($ch == '|') return static::$conf['cache'].substr($src, 1);	
 		return $src;
 	}
+	public static function reqif($path)
+	{
+		if (Path::theme($path)) return static::req($path);
+	}
 	public static function req($path)
 	{
 		$args=array($path);
