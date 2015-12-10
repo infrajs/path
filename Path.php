@@ -16,7 +16,7 @@ class Path {
 		 * Записывается так "catalog"=>array("vendor/infrajs/cards/")
 		 * Файлы в папке *catalog/ будудут заменены на файлы в vendor/infrajs/cards/catalog/ при наличии
 		 **/
-		'external' => array()
+		'clutch' => array()
 	);
 	/**
 	 * Path::init($query) запускается только из корня проекта. 
@@ -100,7 +100,7 @@ class Path {
 			$conf = Path::$conf;
 			if (!$str) return;
 			
-			
+
 			$is_fn = (mb_substr($str, mb_strlen($str) - 1, 1) == '/' || in_array($str,array('*', '~', '|'))) ? 'is_dir' : 'is_file';
 			
 
@@ -112,12 +112,12 @@ class Path {
 			} else if ($ch == '*') {
 				$str = mb_substr($str, 1);
 
-				if ($is_fn('./'.$str)) return './'.$str; //Корень важней search и external
+				if ($is_fn('./'.$str)) return './'.$str; //Корень важней search и clutch
 
 				$p=explode('/', $str); //file.ext folder/ folder/file.ext folder/dir/file.ext
 				if(sizeof($p)>1){
-					if(!empty($conf['external'][$p[0]])) {
-						foreach ($conf['external'][$p[0]] as $dir) {
+					if(!empty($conf['clutch'][$p[0]])) {
+						foreach ($conf['clutch'][$p[0]] as $dir) {
 							if ($is_fn($dir.$str)) return $dir.$str;
 						}
 					}
@@ -207,7 +207,12 @@ class Path {
 	}
 	public static function reqif($path)
 	{
-		if (Path::theme($path)) return static::req($path);
+		if (Path::theme($path)) {
+			static::req($path);
+			return true;
+		} else {
+			return false;
+		}
 	}
 	public static function req($path)
 	{
