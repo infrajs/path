@@ -217,9 +217,9 @@ class Path {
 	public static function req($path)
 	{
 		$args=array($path);
-		Once::exec('Load::req', function($path) {
+		Once::exec('Path::req', function($path) {
 			$rpath = Path::theme($path);
-			if (!$rpath) throw new \Exception('Load::req - не найден путь '.$path);
+			if (!$rpath) throw new \Exception('Path::req - не найден путь '.$path);
 			require_once $rpath;//Просто require позволяет загрузить самого себя. А мы текущий скрипт не добавляем в список подключённых
 		}, $args);
 	}
