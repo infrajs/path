@@ -141,7 +141,7 @@ class Path {
 			}
 			return false;
 		}, $args);
-
+		if(!$src) return false;
 		return $src.$query;
 	}
 	public static function toutf($str)
