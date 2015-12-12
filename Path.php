@@ -205,6 +205,24 @@ class Path {
 		else if($ch == '|') return static::$conf['cache'].substr($src, 1);	
 		return $src;
 	}
+	public static function pretty($src) 
+	{
+		if (!$src) return $src;
+		$conf=static::$conf;
+		
+		$path = str_replace('/', '\/', $conf['data']);
+		$src = preg_replace('/^'.$path.'/', '~', $src);
+
+		$path = str_replace('/', '\/', $conf['cache']);
+		$src = preg_replace('/^'.$path.'/', '|', $src);
+
+		foreach($conf['search'] as $path) {
+			$path = str_replace('/', '\/', $path);
+			$src = preg_replace('/^'.$path.'/', '*', $src);
+		}
+
+		return $src;
+	}
 	public static function reqif($path)
 	{
 		if (Path::theme($path)) {
@@ -219,19 +237,24 @@ class Path {
 		$args=array($path);
 		Once::exec('Path::req', function($path) {
 			$rpath = Path::theme($path);
-			if (!$rpath) throw new \Exception('Path::req - не найден путь '.$path);
+			if (!$rpath) {
+				echo '<pre>';
+				throw new \Exception('Path::req - не найден путь '.$path);
+			}
 			require_once $rpath;//Просто require позволяет загрузить самого себя. А мы текущий скрипт не добавляем в список подключённых
 		}, $args);
 	}
 	/**
-	 * Удалить или очистить дирректорию
+	 * Удалить (true) или очистить дирректорию (false)
 	 *
 	 **/
 	public static function fullrmdir($delfile, $ischild = true)
 	{
 		if (!static::$conf['fs']) throw new Exception('Work with filesystem forbbiden conf.path.fs');
-		$delfile = Path::theme($delfile);
+		if(!$delfile) throw new Exception('Нужно указать существующий путь до папки для удаления');
+		$delfile = Path::resolve($delfile);
 		if (file_exists($delfile)) {		
+			if(!$delfile) throw new Exception('Удалить корневую папку нельзя');
 			if (is_dir($delfile)) {
 				$handle = opendir($delfile);
 				while ($filename = readdir($handle)) {
