@@ -9,4 +9,4 @@ if (!is_file('vendor/autoload.php')) {
 
 $query=urldecode($_SERVER['QUERY_STRING']);
 
-return Path::go($query);
+return Path::go($query); //go потому что другие адресов здесь нет. Не обрабатывается "./"

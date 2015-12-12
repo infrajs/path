@@ -248,7 +248,7 @@ class Path {
 	 * Удалить (true) или очистить дирректорию (false)
 	 *
 	 **/
-	public static function fullrmdir($delfile, $ischild = true)
+	public static function fullrmdir($delfile, $ischild = false)
 	{
 		if (!static::$conf['fs']) throw new Exception('Work with filesystem forbbiden conf.path.fs');
 		if(!$delfile) throw new Exception('Нужно указать существующий путь до папки для удаления');
