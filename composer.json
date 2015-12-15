@@ -6,6 +6,7 @@
 		"psr-4": { "infrajs\\path\\": "/" }
 	},
 	"require":{
-		"infrajs/once":"~1"
+		"infrajs/once":"~1",
+		"michelf/php-markdown":"~1"
 	}
 }
