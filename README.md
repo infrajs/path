@@ -1,5 +1,5 @@
 # Path - общая система файловой адресации для сервера и клиента
-Поддерживаются файловые системы с CP1251 и UTF-8. Поддержка SEF-url, ЧПУ.
+Поддержка кирилицы на файловых системах с кодировками CP1251 и UTF-8. Поддержка SEF-url, ЧПУ. PHP от 5.4 
 
 ## Принципы и порядок работы с адресом
 0. Корнем проекта является папка содержащая файл - ```vender/autoload.php```
@@ -90,10 +90,20 @@ Path::$conf = array(
 
 ### API
 ```php
-$query=Path::init(); //$query содержит запрос для которого не нашлось решения иначе выполнится exit;
+$query = Path::init(); //$query содержит запрос для которого не нашлось решения иначе выполнится exit;
 echo Path::theme('~mypic.jpg'); //если файл есть "data/mypic.jpg" иначе false
 echo Path::resolve('~mypic.jpg'); //всегда "data/mypic.jpg"
 Path::req('-path/index.php'); //Аналог require_once с поддержкой спецсимволов
+Path::reqif('-path/index.php'); //Не приводит к ошибке если файл отсутствует
+echo Path::toutf($str);
+echo Path::tofs($str);
+echo Path::encode($str);//Ковертирует строку в последовательность которую можно использовать в имени файла
+echo Path::getExt($str);
+echo Path::mkdir($str);
+echo Path::isdir($str);
+echo Path::getQuery();//Возвращает текущий запрос
+echo Path::pretty('data/mypic.jpg'); //антоним resolve. Результат "~mypic.jpg"
+Path::fullrmdir($path, $sefldelete); //Очищает дирректори и если второй аргумент true то удаляется полностью
 ```
 
 Приведёный пример для настройки modrewrite должен быть скорректирован на свой обработчик по аналогии с ```index.php```. Path выполняет узкий набор функций по нахождению файлов и декларации правил работы с адресом. Дальше можно уточнить, как работать с подключаемыми php файлами [infrajs/infra](https://github.com/infrajs/infra) и определить, что делать с запросами для которых файла найдено не было [infrajs/controller](https://github.com/infrajs/controller).

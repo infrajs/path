@@ -1,6 +1,6 @@
 {
 	"path":{
-		"require": "*path/infra.php",
+		"require": "-path/infra.php",
 		"fs": true,
 		"cache":"cache/",
 		"data":"data/",

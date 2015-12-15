@@ -1,6 +1,5 @@
 <?php
 namespace infrajs\path;
-use Michelf\Markdown;
 
 if (!is_file('vendor/autoload.php')) {
 	chdir('../../../');	
@@ -11,6 +10,16 @@ if (!is_file('vendor/autoload.php')) {
  * В корне проекта по положению файла autoload.php нельзя определть был ли он подключён или нет.
  **/
 require_once('vendor/autoload.php');
+
+
+/*header_register_callback(function(){
+	$code=http_response_code();
+	if($code!=200){
+		echo $code;
+	}
+});
+*/
+
 
 Path::$conf['sefurl']=true;
 

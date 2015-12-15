@@ -18,17 +18,26 @@ class Path {
 	/**
 	 * Path::init($query)
 	 * $query может взять из QUERY_STRING или из URI_REQUEST если используется modrewrite
-	 * Если в $query начинается с символов ./ или *~| будет проверка файла на доступность и переадресация на него
+	 * Если в $query начинается с символов ./ или -~! будет проверка файла на доступность и переадресация на него
 	 **/
 	public static $exec = false;
 	public static function init()
 	{
 
+		//	site.ru/(req/?param) query
 		$query=Path::getQuery();
+
 		$root=static::getRoot();
+
 		$req=static::getRequest();
-		$req=implode('/',$req);
-		$conf=static::$conf;
+		$param=urldecode($_SERVER['QUERY_STRING']);
+	
+
+		$conf=static::$conf;	
+		$res=static::analyze($param);
+		$queryfile = Path::theme($res['query']);
+
+
 		if(static::$exec&&$conf['sefurl']){
 			if(static::$exec==$query) {
 				/**
@@ -44,30 +53,35 @@ class Path {
 				 *
 				 * При sefurl=false  вернёт 404 
 				 * при ?-path/?-path или vendor/infrajs/path/?-path/?-path будет конечная цепочка инклудов, 
+				 * Проигнорировать инклуд заменить на редирект нельзя так как не известно будет ли в нём вызов Path::init()
 				 * так как $_GET в отличие от $_SERVER['REQUEST_URI'] корректно подменяется для каждого следующего.
 				 **/
+				//Убираем из $query $req составляющую (путь)
 				$query=urldecode($_SERVER['QUERY_STRING']);
 
-				if ($query) $query='?'.$query;
-				header('Location: ./'.$root.$query);
-				exit;
+				//ТАкое бывает только для Php файлов
+				
 			}
 		}
 		static::$exec=$query;
+		
 
 		//Проверить что запрос соответствует режиму работы sefurl
-		if (static::$conf['sefurl']) {
+		if (static::$conf['sefurl']&&$queryfile) {
+			/**
+			 * Проблема /-admin/?login и /-admin/?-tester/
+			 * Редирект произойдёт только для -tester/ Так как такой файл будет найден
+			 **/
 			//Редирект на адресо со слэшом
-			$param=urldecode($_SERVER['QUERY_STRING']);
 			$res=static::analyze($param);
-
 			if ($res['query']) {
-
 				header('Location: ./'.$root.$res['query'].$res['params']);
 				exit;
 			}
 			//}
-		} else {
+		} 
+
+		if (!static::$conf['sefurl']) {
 			//Редирект на адрес с вопросом. Если $req не найден
 			//Поверяем Path::theme($req) так как обращение к файлу с Path::init может быть напрямую. И не требуется уходить с него.
 			if($req&&!Path::theme($req)) { //Если есть какой-нибудь запрос в чати пути с папками и файлом
@@ -87,14 +101,27 @@ class Path {
 		if ($query) {
 			$ch=$query{0};
 			if ( in_array($ch, array('-', '~', '!')) ) {
+				//файл не проверяем. отсутствует всёравно идём в go
+				if(Path::isdir($query)){
+					$p=explode('?', $query, 2);
+					$p[0] .='index.php';
+					$query=implode('?', $p);
+				}
 				Path::go($query);
 				exit;
 			} else {
-				$file=Path::theme($query);
-				if($file) {
 
-					Path::go($query);
-					exit;
+				$file=Path::theme($query);
+				if($file) { //файл отсутствует проходим дальше
+					if(Path::isdir($file)){
+						$p=explode('?', $file, 2);
+						$p[0] .='index.php';
+						$file=implode('?', $p);
+					}
+					if($file) {
+						Path::go($file);
+						exit;
+					}
 				}
 			}
 		}
@@ -104,7 +131,7 @@ class Path {
 	 * Разбираем строку, ест ли в ней строка запроса и отдельно строка параметров
 	 * Строкой запроса считается часть в начале параметров если она не содержит знак = и это имя не содержит слэш
 	 **/
-	public static function analyze($query)
+	private static function analyze($query)
 	{
 		$amp = explode('&', $query, 2);
 
@@ -124,29 +151,24 @@ class Path {
 			'params'=>$params
 		);
 	}
-	public static function go()
+	public static function go($query)
 	{
-		$query=Path::getQuery();
-		if (!$query) {
-			header('HTTP/1.0 400 Bad Request');
-			return false;
-		}
 		$query=Path::theme($query);
 		if (!$query) {
-			header('HTTP/1.0 404 Not Found');
+			http_response_code(404);
 			return false;
 		}
 
 		$p=explode('?', $query, 2);
 		if ($p[0] && (preg_match("/\/\./", $p[0]) || ($p[0]{0} == '.' && $p[0]{1} != '/'))) {
-			header('HTTP/1.0 403 Forbidden');
+			http_response_code(403); //Forbidden
 			return false;
 		}
 
 		
 
 		if(strpos(realpath($p[0]), realpath('./')) !== 0) { //Проверка что доступ к внутреннему ресурсу
-			header('HTTP/1.0 403 Forbidden');
+			http_response_code(403);
 			return false;
 		}
 		//Узнать текущий путь браузера можно из REQUEST_URI, но узнать какая из папок в этом адресе является корнем проекта невозможно. 
@@ -160,13 +182,13 @@ class Path {
 		
 		
 		if ($ext=='php') return static::inc($query);
-		$isdir = static::isDir($query);
+		$isdir = static::isdir($query);
 		if ($isdir) return static::inc($query);
 
 		header('Location: '.static::getRoot().$query);
 		return true;
 	}
-	public static function isDir($src){
+	public static function isdir($src){
 		$p=explode('?',$src, 2);
 		$path=$p[0];
 		if($path[strlen($path)-1]=='/')return true;
@@ -180,7 +202,6 @@ class Path {
 			return $query;
 		}
 		$req=static::getRequest();
-		$req=implode('/',$req);
 		if(!$req)$req=$query;
 		else if($query)$req.='?'.$query;
 
@@ -204,7 +225,7 @@ class Path {
 		 * Фактически это путь для <base> когда открыт текущий REQUEST_URI чтобы все ссылки работали хотя указаны от корня проекта.
 		 **/
 		$req=static::getRequest();
-
+		$req=explode('/', $req);
 		//Вычитаем из uri папки которые также находятся в видимости вебсервера
 		//Чтобы получить на какую глубину надо отойти от текущего uri чтобы попасть в корень вебсервера
 		$deep=sizeof($req)-1;
@@ -213,7 +234,8 @@ class Path {
 		return $root;
 	}
 	/**
-	 * Возвращает запрос, который есть сейчас в адресной строке от корня проекта. Массив.
+	 * Возвращает запрос, который есть сейчас в адресной строке от корня проекта
+	 * Хотябы один пустой есть всегда
 	 **/
 	public static function getRequest()
 	{
@@ -238,9 +260,12 @@ class Path {
 
 		
 		$temp=array_pop($uri);//Последний элемент может быть пустым
-		$uri = array_diff($uri, array(''));
+		if(sizeof($uri)) {
+			$uri = array_diff($uri, array(''));
+		}
 		$uri[]=$temp;
-
+			
+			
 		
 		/*
 			proj
@@ -267,6 +292,7 @@ class Path {
 		
 
 		$try=array();
+		$r=false;
 		foreach($uri as $i=>$u){
 			if($uri[$i]!=$proj[0])continue;
 			$try=array_slice($uri, $i);
@@ -281,15 +307,15 @@ class Path {
 			if($r) break;
 			
 		}
+		if (!$r) $try=array();
 		$req=array_slice(array_reverse($uri),sizeof($try));
+		$req=implode('/',$req);
 		return $req;
 	}
 	public static function inc($src)
 	{
 		$p=explode('?', $src, 2);
 		$path=$p[0];
-
-		if($path[strlen($path)-1]=='/')$path.='index.php';
 
 		$query = (sizeof($p) == 2) ? '?'.$p[1] : '';
 		$getstr = preg_replace("/^\?/", '', $query);
@@ -313,9 +339,8 @@ class Path {
 			//Скрытые файлы доступны
 
 			$str = Path::toutf($str);
-			$origstr=$str;
 			$conf = Path::$conf;
-			if (!$str) return;
+			if (!$str) return false;
 			
 
 			$is_fn = (mb_substr($str, mb_strlen($str) - 1, 1) == '/' || in_array($str,array('-', '~', '!'))) ? 'is_dir' : 'is_file';
@@ -417,7 +442,7 @@ class Path {
 	{
 		if (!$src) return $src;
 		$ch=$src{0};
-		if ($ch == '-') throw new \Exception('Symbol * contain multiple paths and cant be resolving without request to the filesystem. Use theme() or fix src');
+		if ($ch == '-') throw new \Exception('Symbol - contain multiple paths and cant be resolving without request to the filesystem. Use theme() or fix src');
 		else if($ch == '~') return static::$conf['data'].substr($src, 1);	
 		else if($ch == '!') return static::$conf['cache'].substr($src, 1);	
 		return $src;
