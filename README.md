@@ -44,7 +44,7 @@ Path::$conf = array(
 	 * .htaccess
 	 * RewriteEngine on
 	 * RewriteCond %{REQUEST_FILENAME} !-f
-	 * RewriteRule ^(.*)$ vendor/infrajs/path/index.php [L,QSA]
+	 * RewriteRule ^(.*)$ vendor/infrajs/path/indexsef.php [L,QSA]
 	 *	
 	 * В режиме sefurl=false все параметры передаются после знака "?" "site.ru/?contacts". 
 	 *
@@ -93,6 +93,7 @@ Path::$conf = array(
 $query=Path::init(); //$query содержит запрос для которого не нашлось решения иначе выполнится exit;
 echo Path::theme('~mypic.jpg'); //если файл есть "data/mypic.jpg" иначе false
 echo Path::resolve('~mypic.jpg'); //всегда "data/mypic.jpg"
+Path::req('-path/index.php'); //Аналог require_once с поддержкой спецсимволов
 ```
 
 Приведёный пример для настройки modrewrite должен быть скорректирован на свой обработчик по аналогии с ```index.php```. Path выполняет узкий набор функций по нахождению файлов и декларации правил работы с адресом. Дальше можно уточнить, как работать с подключаемыми php файлами [infrajs/infra](https://github.com/infrajs/infra) и определить, что делать с запросами для которых файла найдено не было [infrajs/controller](https://github.com/infrajs/controller).
