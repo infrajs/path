@@ -7,10 +7,8 @@ use infrajs\event\Event;
  * Интеграция с infrajs/infra
  **/
 
-//Общий конфиг
-$conf=&Infra::config('path');
-Path::$conf=array_merge(Path::$conf, $conf);
-$conf=Path::$conf;
+//Общий конфиг в Infra
+
 
 
 //При инсталяции создание папок cache и data

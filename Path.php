@@ -1,6 +1,7 @@
 <?php
 namespace infrajs\path;
 use infrajs\once\Once;
+use infrajs\nostore\Nostore;
 class Path {
 	public static $conf = array(
 		'sefurl' => false,
@@ -24,19 +25,38 @@ class Path {
 	public static function init()
 	{
 
+		$root=static::getRoot();
+		$req=static::getRequest();
+		$reqfile = Path::theme($req);
+		$reqext = static::getExt($req);
 		//	site.ru/(req/?param) query
 		$query=Path::getQuery();
+		$queryres=static::analyze($query);
+		$queryfile = Path::theme($queryres['query']);
+		$queryext = static::getExt($queryres['query']);
 
-		$root=static::getRoot();
+		$conf=static::$conf;
 
-		$req=static::getRequest();
 		$param=urldecode($_SERVER['QUERY_STRING']);
-	
+		$paramres=static::analyze($param);
+		$paramfile = Path::theme($paramres['query']);
+		$paramext = static::getExt($paramres['query']);
 
-		$conf=static::$conf;	
-		$res=static::analyze($param);
-		$queryfile = Path::theme($res['query']);
-
+		if ($param) {
+			$paramch = in_array($param{0}, array('-', '~', '!'));
+		} else {
+			$paramch = false;
+		}
+		if ($req) {
+			$reqch = in_array($req{0}, array('-', '~', '!'));
+		} else {
+			$reqch = false;
+		}
+		if ($query) {
+			$querych=in_array($query{0}, array('-', '~', '!'));
+		} else {
+			$querych=false;
+		}
 
 		if(static::$exec&&$conf['sefurl']){
 			if(static::$exec==$query) {
@@ -66,65 +86,122 @@ class Path {
 		static::$exec=$query;
 		
 
+
 		//Проверить что запрос соответствует режиму работы sefurl
-		if (static::$conf['sefurl']&&$queryfile) {
+		if (static::$conf['sefurl']) {
+			
+			//Редирект на адресо со слэшом
 			/**
 			 * Проблема /-admin/?login и /-admin/?-tester/
 			 * Редирект произойдёт только для -tester/ Так как такой файл будет найден
 			 **/
-			//Редирект на адресо со слэшом
-			$res=static::analyze($param);
-			if ($res['query']) {
-				header('Location: ./'.$root.$res['query'].$res['params']);
+
+			//Редирект на адрес с вопросом от корня
+
+			if ( $reqch || $reqfile) {
+				header('Cache-Control: max-age=3600, public');
+				header('Location: ./'.$root.'?'.implode('?',$queryres), true, 301);
+				
 				exit;
 			}
-			//}
-		} 
+			
 
-		if (!static::$conf['sefurl']) {
+			//Редирект на адрес со слэшом
+			if ($param&&!$paramch&&!$paramfile) {
+				header('Cache-Control: max-age=3600, public');
+				header('Location: ./'.$root.implode('?',$paramres), true, 301);
+				exit;
+			}
+
+			
+			/*exit;
+			
+			
+			
+			//header('Location: ./'.$root.implode('?',$paramres), true, 301);
+			
+			
+			$ch=$req{0};
+			if ( in_array($ch, array('-', '~', '!')) ) {
+				header('Cache-Control: max-age=3600, public');
+				
+				exit;
+			}*/
+
+			if ($query) {
+				$ch=$query{0};
+				if ( in_array($ch, array('-', '~', '!')) ) {
+					//файл не проверяем. отсутствует всёравно идём в go
+					if(Path::isdir($query)){
+						$p=explode('?', $query, 2);
+						$p[0] .='index.php';
+						$query=implode('?', $p);
+					}
+					Path::go($query);
+					exit;
+				} else {
+
+					$file=Path::theme($query);
+					if($file) { //Если файл отсутствует проходим дальше
+						if(Path::isdir($file)){
+							$p=explode('?', $file, 2);
+							$p[0] .='index.php';
+							$file=implode('?', $p);
+						}
+
+						if($file) {
+							Path::go($file);
+							exit;
+						}
+					}
+				}
+			}
+		} else if (!static::$conf['sefurl']) {
 			//Редирект на адрес с вопросом. Если $req не найден
 			//Поверяем Path::theme($req) так как обращение к файлу с Path::init может быть напрямую. И не требуется уходить с него.
 			if($req&&!Path::theme($req)) { //Если есть какой-нибудь запрос в чати пути с папками и файлом
 				$param=urldecode($_SERVER['QUERY_STRING']);
-				$res=static::analyze($param);
-				if ($res['query']) {
-					//echo 'Location: ./'.$root.$res['query'].$res['params'];
-					header('Location: ./'.$root.$res['query'].$res['params']);
+				if ($paramres['query']) {
+					//echo 'Location: ./'.$root.$paramres['query'].$paramres['params'];
+					header('Cache-Control: max-age=3600, public');
+					header('Location: ./'.$root.implode('?',$paramres), true, 301);
 					exit;
 				}
 				if ($query) $query='&'.$query;
-				header('Location: ./'.$root.'?'.$req.$query);
+				header('Cache-Control: max-age=3600, public');
+				header('Location: ./'.$root.'?'.$req.$query, true, 301);
 				exit;
 			}
-		}
-
-		if ($query) {
-			$ch=$query{0};
-			if ( in_array($ch, array('-', '~', '!')) ) {
-				//файл не проверяем. отсутствует всёравно идём в go
-				if(Path::isdir($query)){
-					$p=explode('?', $query, 2);
-					$p[0] .='index.php';
-					$query=implode('?', $p);
-				}
-				Path::go($query);
-				exit;
-			} else {
-
-				$file=Path::theme($query);
-				if($file) { //файл отсутствует проходим дальше
-					if(Path::isdir($file)){
-						$p=explode('?', $file, 2);
+			if ($query) {
+				$ch=$query{0};
+				if ( in_array($ch, array('-', '~', '!')) ) {
+					//файл не проверяем. отсутствует всёравно идём в go
+					if(Path::isdir($query)){
+						$p=explode('?', $query, 2);
 						$p[0] .='index.php';
-						$file=implode('?', $p);
+						$query=implode('?', $p);
 					}
-					if($file) {
-						Path::go($file);
-						exit;
+					Path::go($query);
+					exit;
+				} else {
+
+					$file=Path::theme($query);
+					if($file) { //Если файл отсутствует проходим дальше
+						if(Path::isdir($file)){
+							$p=explode('?', $file, 2);
+							$p[0] .='index.php';
+							$file=implode('?', $p);
+						}
+						if($file) {
+							Path::go($file);
+							exit;
+						}
 					}
 				}
 			}
 		}
+
+		
 		return $query;
 	}
 	/**
@@ -133,7 +210,7 @@ class Path {
 	 **/
 	private static function analyze($query)
 	{
-		$amp = explode('&', $query, 2);
+		$amp = preg_split('/[&\?]/', $query, 2);
 
 		$eq = explode('=', $amp[0], 2);
 		$sl = explode('/', $eq[0], 2);
@@ -145,32 +222,35 @@ class Path {
 			$params = (string) @$amp[1];
 			$query = $amp[0];
 		}
-		if($params)$params='?'.$params;
-		return array(
-			'query'=>$query,
-			'params'=>$params
-		);
+		if($params)$params=$params;
+		$res=array(
+			'query'=>$query
+		);		
+		if($params)$res['params']=$params;
+
+		return $res;
 	}
 	public static function go($query)
 	{
+
 		$query=Path::theme($query);
+
 		if (!$query) {
 			http_response_code(404);
-			return false;
+			return;
 		}
 
 		$p=explode('?', $query, 2);
+		$queryfile=$p[0];
 		if ($p[0] && (preg_match("/\/\./", $p[0]) || ($p[0]{0} == '.' && $p[0]{1} != '/'))) {
 			http_response_code(403); //Forbidden
-			return false;
+			return;
 		}
-
-		
-
 		if(strpos(realpath($p[0]), realpath('./')) !== 0) { //Проверка что доступ к внутреннему ресурсу
 			http_response_code(403);
-			return false;
+			return;
 		}
+
 		//Узнать текущий путь браузера можно из REQUEST_URI, но узнать какая из папок в этом адресе является корнем проекта невозможно. 
 		//Эта задача решаема только для частных случаев.
 		//В нашем случае мы полагаем либо к файлу было прямое обращение по месту расположения (site/vendor/infrajs/path/)
@@ -181,12 +261,18 @@ class Path {
 		$ext = static::getExt($query);
 		
 		
-		if ($ext=='php') return static::inc($query);
+		
 		$isdir = static::isdir($query);
-		if ($isdir) return static::inc($query);
 
-		header('Location: '.static::getRoot().$query);
-		return true;
+		if ($isdir||$ext=='php') return static::inc($query);
+
+		//return static::inc($query);
+		echo file_get_contents($queryfile);
+		exit;
+
+		header('Cache-Control: max-age=28000, public'); //Переадресация на статику кэшируется на 5 часов. (обновлять сайт надо вечером, а утром у всех всё будет ок)
+		header('Location: '.static::getRoot().$query, true, 301);
+		return;
 	}
 	public static function isdir($src){
 		$p=explode('?',$src, 2);
@@ -353,9 +439,8 @@ class Path {
 				if ($is_fn($conf['data'].$str)) return $conf['data'].$str;
 			} else if ($ch == '-') {
 				$str = mb_substr($str, 1);
-
-				if ($is_fn($str)) return $str; //Корень важней search и clutch
-
+				$str = Path::tofs($str);
+				
 				$p=explode('/', $str); //file.ext folder/ folder/file.ext folder/dir/file.ext
 				if(sizeof($p)>1){
 					if(!empty($conf['clutch'][$p[0]])) {
@@ -364,8 +449,9 @@ class Path {
 						}
 					}
 				}
-				$str = Path::tofs($str);
 				
+				if ($is_fn($str)) return $str; //Корень важней search, clutch важней корня
+
 				foreach ($conf['search'] as $dir) {
 					if ($is_fn($dir.$str)) return $dir.$str;
 				}

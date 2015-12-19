@@ -1,13 +1,12 @@
 {
-	"path":{
-		"require": "-path/infra.php",
-		"fs": true,
-		"cache":"cache/",
-		"data":"data/",
-		"search":[
-			"vendor/infrajs/",
-			"vendor/components/",
-			"bower_components/"
-		]
-	}
+	"require": "infra.php",
+	"conf":"\\infrajs\\path\\Path",
+	"fs": true,
+	"cache":"cache/",
+	"data":"data/",
+	"search":[
+		"vendor/infrajs/",
+		"vendor/components/",
+		"bower_components/"
+	]
 }
