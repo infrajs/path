@@ -29,10 +29,13 @@ class Path {
 		$req=static::getRequest();
 		$reqfile = Path::theme($req);
 		$reqext = static::getExt($req);
+		$reqdir = Path::isdir($reqfile);
+
 		//	site.ru/(req/?param) query
 		$query=Path::getQuery();
 		$queryres=static::analyze($query);
 		$queryfile = Path::theme($queryres['query']);
+		
 		$queryext = static::getExt($queryres['query']);
 
 		$conf=static::$conf;
@@ -41,6 +44,7 @@ class Path {
 		$paramres=static::analyze($param);
 		$paramfile = Path::theme($paramres['query']);
 		$paramext = static::getExt($paramres['query']);
+		$paramdir = Path::isdir($paramfile);
 
 		if ($param) {
 			$paramch = in_array($param{0}, array('-', '~', '!'));
@@ -78,9 +82,7 @@ class Path {
 				 **/
 				//Убираем из $query $req составляющую (путь)
 				$query=urldecode($_SERVER['QUERY_STRING']);
-
-				//ТАкое бывает только для Php файлов
-				
+				//ТАкое бывает только для Php файлов		
 			}
 		}
 		static::$exec=$query;
@@ -89,44 +91,60 @@ class Path {
 
 		//Проверить что запрос соответствует режиму работы sefurl
 		if (static::$conf['sefurl']) {
-			
-			//Редирект на адресо со слэшом
-			/**
-			 * Проблема /-admin/?login и /-admin/?-tester/
-			 * Редирект произойдёт только для -tester/ Так как такой файл будет найден
-			 **/
-
-			//Редирект на адрес с вопросом от корня
-
-			if ( $reqch || $reqfile) {
-				header('Cache-Control: max-age=3600, public');
-				header('Location: ./'.$root.'?'.implode('?',$queryres), true, 301);
+			foreach([1] as $k){
 				
-				exit;
-			}
-			
+				/*
+					Ситуация
+					site.ru/adsf?-admin/?...
+					site.ru/sadf?vendor/admin/?...
+					site.ru/asdf?vendor/admin/index.php?...
+				*/
+				if($paramfile){
+					$paramext=Path::getExt($paramfile);
+					if($paramdir) $paramext='php';
+					if ( $paramext == 'php' ) {
+						Path::redirect(implode('?',$paramres));
+					}
+					if($req){
+						Path::redirect(implode('?',$paramres));
+					}
+				}
 
-			//Редирект на адрес со слэшом
-			if ($param&&!$paramch&&!$paramfile) {
-				header('Cache-Control: max-age=3600, public');
-				header('Location: ./'.$root.implode('?',$paramres), true, 301);
-				exit;
-			}
+				/*
+					Ситуация
+					site.ru/-admin/?...
+					site.ru/vendor/admin/?...
+					site.ru/vendor/admin/index.php?...
+				*/
+				if($reqfile){
+					$reqext = Path::getExt($reqfile);
+					if ($reqdir) $reqext = 'php';
 
-			
-			/*exit;
-			
-			
-			
-			//header('Location: ./'.$root.implode('?',$paramres), true, 301);
-			
-			
-			$ch=$req{0};
-			if ( in_array($ch, array('-', '~', '!')) ) {
-				header('Cache-Control: max-age=3600, public');
+					if ($reqext == 'php') {
+						break;
+					}
+				}
+
+
+				//Редирект на адресо со слэшом
+				/**
+				 * Проблема /-admin/?login и /-admin/?-tester/
+				 * Редирект произойдёт только для -tester/ Так как такой файл будет найден
+				 **/
+
+				/*//Редирект на адрес с вопросом от корня
+
+				if ( $reqch || ($reqfile && !$reqdir)) {
+					Path::redirect('?'.implode('?',$queryres));
+				}
 				
-				exit;
-			}*/
+				*/
+				//Редирект на адрес со слэшом
+				//catalog?contacts - > откроется /contacts
+				if ($param&&!$paramch&&!$paramdir&&!$paramfile&&$paramres['query']) {
+					Path::redirect(implode('?',$paramres));
+				}
+			}
 
 			if ($query) {
 				$ch=$query{0};
@@ -163,14 +181,10 @@ class Path {
 				$param=urldecode($_SERVER['QUERY_STRING']);
 				if ($paramres['query']) {
 					//echo 'Location: ./'.$root.$paramres['query'].$paramres['params'];
-					header('Cache-Control: max-age=3600, public');
-					header('Location: ./'.$root.implode('?',$paramres), true, 301);
-					exit;
+					Path::redirect(implode('?',$paramres));
 				}
 				if ($query) $query='&'.$query;
-				header('Cache-Control: max-age=3600, public');
-				header('Location: ./'.$root.'?'.$req.$query, true, 301);
-				exit;
+				Path::redirect('?'.$req.$query);
 			}
 			if ($query) {
 				$ch=$query{0};
@@ -203,6 +217,13 @@ class Path {
 
 		
 		return $query;
+	}
+	private static function redirect($src)
+	{
+		Nostore::cache();
+		$root=static::getRoot();
+		header('Location: ./'.$root.$src, true, 301);
+		exit;
 	}
 	/**
 	 * Разбираем строку, ест ли в ней строка запроса и отдельно строка параметров
@@ -265,19 +286,36 @@ class Path {
 		$isdir = static::isdir($query);
 
 		if ($isdir||$ext=='php') return static::inc($query);
+		
 
+		$file = static::getRoot().$query;
+		
+		/*//header("X-Sendfile: $file");
+		//header("Content-type: application/octet-stream");
+		//header('Content-Disposition: attachment; filename="' . basename($file) . '"');
+
+
+		//header("X-Sendfile: ".$file);
+		//header("X-Accel-Redirect: ".static::getRoot().$query);
+	
+		exit;
+		$mime=\mime_content_type($queryfile);
+		echo $mime;
+		exit;
 		//return static::inc($query);
 		echo file_get_contents($queryfile);
-		exit;
 
-		header('Cache-Control: max-age=28000, public'); //Переадресация на статику кэшируется на 5 часов. (обновлять сайт надо вечером, а утром у всех всё будет ок)
-		header('Location: '.static::getRoot().$query, true, 301);
-		return;
+		exit;*/
+
+		Path::redirect($query);
 	}
 	public static function isdir($src){
+		if (!$src) return false;
 		$p=explode('?',$src, 2);
 		$path=$p[0];
+
 		if($path[strlen($path)-1]=='/')return true;
+
 		return false;
 	}
 	public static function getQuery()

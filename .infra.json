@@ -1,5 +1,4 @@
 {
-	"require": "infra.php",
 	"conf":"\\infrajs\\path\\Path",
 	"fs": true,
 	"cache":"cache/",
