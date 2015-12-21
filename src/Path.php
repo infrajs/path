@@ -1,5 +1,6 @@
 <?php
 namespace infrajs\path;
+
 use infrajs\once\Once;
 use infrajs\nostore\Nostore;
 
@@ -24,16 +25,16 @@ class Path {
 	 * Если в $query начинается с символов ./ или -~! будет проверка файла на доступность и переадресация на него
 	 **/
 	public static $exec = false;
-	public static function init()
+	public static function init2()
 	{
 		return Once::exec('infrajs::Path::init', function () {
-			$root=static::getRoot();
+			$root=URN::getRoot();
 			$req=static::getRequest();
 			$reqfile = Path::theme($req);
 			$reqext = static::getExt($req);
 			$reqdir = Path::isdir($reqfile);
 
-			//	site.ru/(req/?param) query
+			//	
 			$query=Path::getQuery();
 			$queryres=static::analyze($query);
 			$queryfile = Path::theme($queryres['query']);
@@ -219,38 +220,81 @@ class Path {
 			return $query;
 		});
 	}
+	public static function init()
+	{
+		return Once::exec('infrajs::Path::init', function () {
+			
+			$res=URN::parse();
+			
+			/*
+				Ситуация
+				site.ru/adsf?-admin/
+				site.ru/sadf?vendor/infrajs/admin/
+				site.ru/asdf?vendor/infrajs/admin/index.php
+			*/
+			$res['request2ch'] = $res['request2'] ? in_array($res['request2']{0}, array('-', '~', '!')) : false;
+			if ( $res['request2ch'] || Path::theme($res['request2']) ) {
+				if($res['param2']) Path::redirect($res['request2'].'?'.$res['param2']);
+				else Path::redirect($res['request2']);
+			}
+
+			/*
+				Ситуация
+				site/?login = site/login
+				site/-asdf?login = site/-asdf?login
+				site/catalog?contacts = site/contacts
+			*/
+			$res['requestch'] = $res['request'] ? in_array($res['request']{0}, array('-', '~', '!')) : false;
+			if(!$res['requestch']&&!Path::theme($res['request'])&&$res['request2']) {
+				//Чтобы работали старые ссылки
+				if($res['param2']) Path::redirect($res['request2'].'?'.$res['param2']);
+				else Path::redirect($res['request2']);
+			}
+			
+			
+			//exit;
+			//$res['request2dir'] = Path::isdir($res['request2']);
+			//$res['request2ext'] = Path::getExt($res['request2']);
+			
+			$res['requestdir'] = Path::isdir($res['request']);
+
+			if ($res['request']) {
+				
+				if ( $res['requestch'] ) {
+					//файл не проверяем. отсутствует всёравно идём в go
+					$query = $res['query'];
+					if($res['requestdir']){
+						$p=explode('?', $res['query'], 2);
+						$p[0] .='index.php';
+						$query=implode('?', $p);
+					}
+					Path::go($query);
+					exit;
+				} else {
+					$file=Path::theme($res['request']);
+					if($file) { //Если файл отсутствует проходим дальше
+						if($res['requestdir']){
+							$p=explode('?', $res['query'], 2);
+							$p[0] .='index.php';
+							$file=implode('?', $p);
+						}
+
+						if(Path::theme($file)) {
+							Path::go($file);
+							exit;
+						}
+					}
+				}
+			}				
+			return $query;
+		});
+	}
 	private static function redirect($src)
 	{
 		Nostore::pub();
-		$root=static::getRoot();
+		$root=URN::getRoot();
 		header('Location: ./'.$root.$src, true, 301);
 		exit;
-	}
-	/**
-	 * Разбираем строку, ест ли в ней строка запроса и отдельно строка параметров
-	 * Строкой запроса считается часть в начале параметров если она не содержит знак = и это имя не содержит слэш
-	 **/
-	private static function analyze($query)
-	{
-		$amp = preg_split('/[&\?]/', $query, 2);
-
-		$eq = explode('=', $amp[0], 2);
-		$sl = explode('/', $eq[0], 2);
-		if (sizeof($eq) !== 1 && sizeof($sl) === 1) {
-			//В первой крошке нельзя использовать символ "=" для совместимости с левыми параметрами для главной страницы, которая всё равно покажется
-			$params = $query;
-			$query = '';
-		} else {
-			$params = (string) @$amp[1];
-			$query = $amp[0];
-		}
-		if($params)$params=$params;
-		$res=array(
-			'query'=>$query
-		);		
-		if($params)$res['params']=$params;
-
-		return $res;
 	}
 	public static function go($query)
 	{
@@ -289,7 +333,7 @@ class Path {
 		if ($isdir||$ext=='php') return static::inc($query);
 		
 
-		$file = static::getRoot().$query;
+		$file = URN::getRoot().$query;
 		
 		/*//header("X-Sendfile: $file");
 		//header("Content-type: application/octet-stream");
@@ -323,119 +367,8 @@ class Path {
 	{
 		$conf=static::$conf;
 		$query=urldecode($_SERVER['QUERY_STRING']);
-		if (!$conf['sefurl']) {
-			return $query;
-		}
-		$req=static::getRequest();
-		if(!$req)$req=$query;
-		else if($query)$req.='?'.$query;
-
-		return $req;
-		
-	}
-	public static function getRoot()
-	{
-		/**
-		 * Мы знаем где корень проекта getcwd(), но не знаем где корень вебсервера!
-		 * SCRIPT_NAME это то что исполняется(точка входа с точки зрения сервера)
-		 * PHP_SELF это то что было вызвано (точка входа с точки зрения клиента). 
-		 * REQUEST_URI почти PHP_SELF более понятный, так как буквально означает строку адреса в браузере
-		 * Заголовок location сработает относительно клиентского REQUEST_URI
-		 *
-		 * Вычесляем относительный путь от REQUEST_URI до Корня проекта (getcwd()) чтобы адреса от корня проекта работали и при наличиии текущего REQUEST_URI в адресной строке. 
-		 * Суть проблемы: 
-		 * /xampp/httdoc/git/infrajs/ - корень проекта
-		 * /git/infrajs/test/check/?asdf - REQUEST_URI строка запроса
-		 * ../../ - правильный результат. К нему можно добавить любой путь и он будет сработает в браузере благодаря этой поправки.
-		 * Фактически это путь для <base> когда открыт текущий REQUEST_URI чтобы все ссылки работали хотя указаны от корня проекта.
-		 **/
-		$req=static::getRequest();
-		$req=explode('/', $req);
-		//Вычитаем из uri папки которые также находятся в видимости вебсервера
-		//Чтобы получить на какую глубину надо отойти от текущего uri чтобы попасть в корень вебсервера
-		$deep=sizeof($req)-1;
-		
-		$root=str_repeat('../', $deep);
-		return $root;
-	}
-	/**
-	 * Возвращает запрос, который есть сейчас в адресной строке от корня проекта
-	 * Хотябы один пустой есть всегда
-	 **/
-	public static function getRequest()
-	{
-		$uri=$_SERVER['REQUEST_URI'];
-		$p=explode('?',$uri,2);
-		$uri=urldecode($p[0]);
-		
-		$proj=getcwd().'/';
-		
-		$p=explode(':',$proj,2);
-		if (sizeof($p)!=1) {
-			$proj=$p[1];
-		}
-		$proj=str_replace('\\','/',$proj);
-
-
-		$proj=explode('/',$proj);
-		$uri=explode('/',$uri);
-		//Удалить пустые элементы
-		
-		$proj = array_diff($proj, array(''));
-
-		
-		$temp=array_pop($uri);//Последний элемент может быть пустым
-		if(sizeof($uri)) {
-			$uri = array_diff($uri, array(''));
-		}
-		$uri[]=$temp;
-			
-			
-		
-		/*
-			proj
-			Array
-			(
-			    [1] => xampp
-			    [2] => htdocs
-			    [3] => git
-			    [4] => infrajs
-			)
-			uri
-			Array
-			(
-			    [1] => git
-			    [2] => infrajs
-			    [3] => vendor
-			    [4] => infrajs
-			    [5] => tester
-			)
-
-		*/
-		$uri=array_reverse($uri);
-		$proj=array_reverse($proj);
-		
-
-		$try=array();
-		$r=false;
-		foreach($uri as $i=>$u){
-			if($uri[$i]!=$proj[0])continue;
-			$try=array_slice($uri, $i);
-			//В try каждый элемент должен входить в proj
-			$r=true;
-			foreach($try as $ii=>$t){
-				if($proj[$ii]!=$t) {
-					$r=false;
-					break;
-				}
-			}
-			if($r) break;
-			
-		}
-		if (!$r) $try=array();
-		$req=array_slice(array_reverse($uri),sizeof($try));
-		$req=implode('/',$req);
-		return $req;
+		if (!$conf['sefurl']) return $query;
+		return URN::getQuery();
 	}
 	public static function inc($src)
 	{
@@ -453,7 +386,6 @@ class Path {
 		include $path; //После подключения скрипта работа останавливается. Возвращать старые значения не нужно.
 		return true;
 	}
-	
 	public static function theme($src)
 	{
 		$p=explode('?', $src, 2);

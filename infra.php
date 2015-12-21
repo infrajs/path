@@ -1,7 +1,7 @@
 <?php
 namespace infrajs\path;
 
-use infrajs\infra\Config;
+use infrajs\config\Config;
 
 if (!is_file('vendor/autoload.php')) {
 	chdir('../../../');	
