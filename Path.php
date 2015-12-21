@@ -2,7 +2,9 @@
 namespace infrajs\path;
 use infrajs\once\Once;
 use infrajs\nostore\Nostore;
+
 class Path {
+
 	public static $conf = array(
 		'sefurl' => false,
 		'data' => 'data/',
@@ -24,203 +26,202 @@ class Path {
 	public static $exec = false;
 	public static function init()
 	{
+		return Once::exec('infrajs::Path::init', function () {
+			$root=static::getRoot();
+			$req=static::getRequest();
+			$reqfile = Path::theme($req);
+			$reqext = static::getExt($req);
+			$reqdir = Path::isdir($reqfile);
 
-		$root=static::getRoot();
-		$req=static::getRequest();
-		$reqfile = Path::theme($req);
-		$reqext = static::getExt($req);
-		$reqdir = Path::isdir($reqfile);
+			//	site.ru/(req/?param) query
+			$query=Path::getQuery();
+			$queryres=static::analyze($query);
+			$queryfile = Path::theme($queryres['query']);
+			
+			$queryext = static::getExt($queryres['query']);
 
-		//	site.ru/(req/?param) query
-		$query=Path::getQuery();
-		$queryres=static::analyze($query);
-		$queryfile = Path::theme($queryres['query']);
-		
-		$queryext = static::getExt($queryres['query']);
+			$conf=static::$conf;
 
-		$conf=static::$conf;
+			$param=urldecode($_SERVER['QUERY_STRING']);
+			$paramres=static::analyze($param);
+			$paramfile = Path::theme($paramres['query']);
+			$paramext = static::getExt($paramres['query']);
+			$paramdir = Path::isdir($paramfile);
 
-		$param=urldecode($_SERVER['QUERY_STRING']);
-		$paramres=static::analyze($param);
-		$paramfile = Path::theme($paramres['query']);
-		$paramext = static::getExt($paramres['query']);
-		$paramdir = Path::isdir($paramfile);
-
-		if ($param) {
-			$paramch = in_array($param{0}, array('-', '~', '!'));
-		} else {
-			$paramch = false;
-		}
-		if ($req) {
-			$reqch = in_array($req{0}, array('-', '~', '!'));
-		} else {
-			$reqch = false;
-		}
-		if ($query) {
-			$querych=in_array($query{0}, array('-', '~', '!'));
-		} else {
-			$querych=false;
-		}
-
-		if(static::$exec&&$conf['sefurl']){
-			if(static::$exec==$query) {
-				/**
-				 * При включенном sefurl 
-				 * Рекурсия появляется при обращении самого к себе -path/
-				 * modrewrite файл не найдёт и последует обращение к обработчику
-				 * к "path/"?-path Обработчик найдёт php файл и запустит его подменив окружение 
-				 * кроме REQUEST_URI который так и будет содержать -path/
-				 * Подменять $_SERVER['REQUEST_URI'] нельзя так как как в скриптах нужно знать 
-				 * правильный относительный путь от реального текущего запроса для вывода html и для header location
-				 * по этому на второй интерации цикла в static::$exec видим обработку всё тогоже $query с $req. 
-				 * делаем редирект в корень на адрес без req
-				 *
-				 * При sefurl=false  вернёт 404 
-				 * при ?-path/?-path или vendor/infrajs/path/?-path/?-path будет конечная цепочка инклудов, 
-				 * Проигнорировать инклуд заменить на редирект нельзя так как не известно будет ли в нём вызов Path::init()
-				 * так как $_GET в отличие от $_SERVER['REQUEST_URI'] корректно подменяется для каждого следующего.
-				 **/
-				//Убираем из $query $req составляющую (путь)
-				$query=urldecode($_SERVER['QUERY_STRING']);
-				//ТАкое бывает только для Php файлов		
+			if ($param) {
+				$paramch = in_array($param{0}, array('-', '~', '!'));
+			} else {
+				$paramch = false;
 			}
-		}
-		static::$exec=$query;
-		
-
-
-		//Проверить что запрос соответствует режиму работы sefurl
-		if (static::$conf['sefurl']) {
-			foreach([1] as $k){
-				
-				/*
-					Ситуация
-					site.ru/adsf?-admin/?...
-					site.ru/sadf?vendor/admin/?...
-					site.ru/asdf?vendor/admin/index.php?...
-				*/
-				if($paramfile){
-					$paramext=Path::getExt($paramfile);
-					if($paramdir) $paramext='php';
-					if ( $paramext == 'php' ) {
-						Path::redirect(implode('?',$paramres));
-					}
-					if($req){
-						Path::redirect(implode('?',$paramres));
-					}
-				}
-
-				/*
-					Ситуация
-					site.ru/-admin/?...
-					site.ru/vendor/admin/?...
-					site.ru/vendor/admin/index.php?...
-				*/
-				if($reqfile){
-					$reqext = Path::getExt($reqfile);
-					if ($reqdir) $reqext = 'php';
-
-					if ($reqext == 'php') {
-						break;
-					}
-				}
-
-
-				//Редирект на адресо со слэшом
-				/**
-				 * Проблема /-admin/?login и /-admin/?-tester/
-				 * Редирект произойдёт только для -tester/ Так как такой файл будет найден
-				 **/
-
-				/*//Редирект на адрес с вопросом от корня
-
-				if ( $reqch || ($reqfile && !$reqdir)) {
-					Path::redirect('?'.implode('?',$queryres));
-				}
-				
-				*/
-				//Редирект на адрес со слэшом
-				//catalog?contacts - > откроется /contacts
-				if ($param&&!$paramch&&!$paramdir&&!$paramfile&&$paramres['query']) {
-					Path::redirect(implode('?',$paramres));
-				}
-			}
-
-			if ($query) {
-				$ch=$query{0};
-				if ( in_array($ch, array('-', '~', '!')) ) {
-					//файл не проверяем. отсутствует всёравно идём в go
-					if(Path::isdir($query)){
-						$p=explode('?', $query, 2);
-						$p[0] .='index.php';
-						$query=implode('?', $p);
-					}
-					Path::go($query);
-					exit;
-				} else {
-
-					$file=Path::theme($query);
-					if($file) { //Если файл отсутствует проходим дальше
-						if(Path::isdir($file)){
-							$p=explode('?', $file, 2);
-							$p[0] .='index.php';
-							$file=implode('?', $p);
-						}
-
-						if($file) {
-							Path::go($file);
-							exit;
-						}
-					}
-				}
-			}
-		} else if (!static::$conf['sefurl']) {
-			//Редирект на адрес с вопросом. Если $req не найден
-			//Поверяем Path::theme($req) так как обращение к файлу с Path::init может быть напрямую. И не требуется уходить с него.
-			if($req&&!Path::theme($req)) { //Если есть какой-нибудь запрос в чати пути с папками и файлом
-				$param=urldecode($_SERVER['QUERY_STRING']);
-				if ($paramres['query']) {
-					//echo 'Location: ./'.$root.$paramres['query'].$paramres['params'];
-					Path::redirect(implode('?',$paramres));
-				}
-				if ($query) $query='&'.$query;
-				Path::redirect('?'.$req.$query);
+			if ($req) {
+				$reqch = in_array($req{0}, array('-', '~', '!'));
+			} else {
+				$reqch = false;
 			}
 			if ($query) {
-				$ch=$query{0};
-				if ( in_array($ch, array('-', '~', '!')) ) {
-					//файл не проверяем. отсутствует всёравно идём в go
-					if(Path::isdir($query)){
-						$p=explode('?', $query, 2);
-						$p[0] .='index.php';
-						$query=implode('?', $p);
-					}
-					Path::go($query);
-					exit;
-				} else {
+				$querych=in_array($query{0}, array('-', '~', '!'));
+			} else {
+				$querych=false;
+			}
 
-					$file=Path::theme($query);
-					if($file) { //Если файл отсутствует проходим дальше
-						if(Path::isdir($file)){
-							$p=explode('?', $file, 2);
-							$p[0] .='index.php';
-							$file=implode('?', $p);
+			if(static::$exec&&$conf['sefurl']){
+				if(static::$exec==$query) {
+					/**
+					 * При включенном sefurl 
+					 * Рекурсия появляется при обращении самого к себе -path/
+					 * modrewrite файл не найдёт и последует обращение к обработчику
+					 * к "path/"?-path Обработчик найдёт php файл и запустит его подменив окружение 
+					 * кроме REQUEST_URI который так и будет содержать -path/
+					 * Подменять $_SERVER['REQUEST_URI'] нельзя так как как в скриптах нужно знать 
+					 * правильный относительный путь от реального текущего запроса для вывода html и для header location
+					 * по этому на второй интерации цикла в static::$exec видим обработку всё тогоже $query с $req. 
+					 * делаем редирект в корень на адрес без req
+					 *
+					 * При sefurl=false  вернёт 404 
+					 * при ?-path/?-path или vendor/infrajs/path/?-path/?-path будет конечная цепочка инклудов, 
+					 * Проигнорировать инклуд заменить на редирект нельзя так как не известно будет ли в нём вызов Path::init()
+					 * так как $_GET в отличие от $_SERVER['REQUEST_URI'] корректно подменяется для каждого следующего.
+					 **/
+					//Убираем из $query $req составляющую (путь)
+					$query=urldecode($_SERVER['QUERY_STRING']);
+					//ТАкое бывает только для Php файлов		
+				}
+			}
+			static::$exec=$query;
+			
+
+
+			//Проверить что запрос соответствует режиму работы sefurl
+			if (static::$conf['sefurl']) {
+				foreach([1] as $k){
+					
+					/*
+						Ситуация
+						site.ru/adsf?-admin/?...
+						site.ru/sadf?vendor/admin/?...
+						site.ru/asdf?vendor/admin/index.php?...
+					*/
+					if($paramfile){
+						$paramext=Path::getExt($paramfile);
+						if($paramdir) $paramext='php';
+						if ( $paramext == 'php' ) {
+							Path::redirect(implode('?',$paramres));
 						}
-						if($file) {
-							Path::go($file);
-							exit;
+						if($req){
+							Path::redirect(implode('?',$paramres));
+						}
+					}
+
+					/*
+						Ситуация
+						site.ru/-admin/?...
+						site.ru/vendor/admin/?...
+						site.ru/vendor/admin/index.php?...
+					*/
+					if($reqfile){
+						$reqext = Path::getExt($reqfile);
+						if ($reqdir) $reqext = 'php';
+
+						if ($reqext == 'php') {
+							break;
+						}
+					}
+
+
+					//Редирект на адресо со слэшом
+					/**
+					 * Проблема /-admin/?login и /-admin/?-tester/
+					 * Редирект произойдёт только для -tester/ Так как такой файл будет найден
+					 **/
+
+					/*//Редирект на адрес с вопросом от корня
+
+					if ( $reqch || ($reqfile && !$reqdir)) {
+						Path::redirect('?'.implode('?',$queryres));
+					}
+					
+					*/
+					//Редирект на адрес со слэшом
+					//catalog?contacts - > откроется /contacts
+					if ($param&&!$paramch&&!$paramdir&&!$paramfile&&$paramres['query']) {
+						Path::redirect(implode('?',$paramres));
+					}
+				}
+
+				if ($query) {
+					$ch=$query{0};
+					if ( in_array($ch, array('-', '~', '!')) ) {
+						//файл не проверяем. отсутствует всёравно идём в go
+						if(Path::isdir($query)){
+							$p=explode('?', $query, 2);
+							$p[0] .='index.php';
+							$query=implode('?', $p);
+						}
+						Path::go($query);
+						exit;
+					} else {
+
+						$file=Path::theme($query);
+						if($file) { //Если файл отсутствует проходим дальше
+							if(Path::isdir($file)){
+								$p=explode('?', $file, 2);
+								$p[0] .='index.php';
+								$file=implode('?', $p);
+							}
+
+							if($file) {
+								Path::go($file);
+								exit;
+							}
 						}
 					}
 				}
-			}
-		}
+			} else if (!static::$conf['sefurl']) {
+				//Редирект на адрес с вопросом. Если $req не найден
+				//Поверяем Path::theme($req) так как обращение к файлу с Path::init может быть напрямую. И не требуется уходить с него.
+				if($req&&!Path::theme($req)) { //Если есть какой-нибудь запрос в чати пути с папками и файлом
+					$param=urldecode($_SERVER['QUERY_STRING']);
+					if ($paramres['query']) {
+						//echo 'Location: ./'.$root.$paramres['query'].$paramres['params'];
+						Path::redirect(implode('?',$paramres));
+					}
+					if ($query) $query='&'.$query;
+					Path::redirect('?'.$req.$query);
+				}
+				if ($query) {
+					$ch=$query{0};
+					if ( in_array($ch, array('-', '~', '!')) ) {
+						//файл не проверяем. отсутствует всёравно идём в go
+						if(Path::isdir($query)){
+							$p=explode('?', $query, 2);
+							$p[0] .='index.php';
+							$query=implode('?', $p);
+						}
+						Path::go($query);
+						exit;
+					} else {
 
-		
-		return $query;
+						$file=Path::theme($query);
+						if($file) { //Если файл отсутствует проходим дальше
+							if(Path::isdir($file)){
+								$p=explode('?', $file, 2);
+								$p[0] .='index.php';
+								$file=implode('?', $p);
+							}
+							if($file) {
+								Path::go($file);
+								exit;
+							}
+						}
+					}
+				}
+			}			
+			return $query;
+		});
 	}
 	private static function redirect($src)
 	{
-		Nostore::cache();
+		Nostore::pub();
 		$root=static::getRoot();
 		header('Location: ./'.$root.$src, true, 301);
 		exit;
