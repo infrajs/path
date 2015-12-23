@@ -70,7 +70,7 @@ Path::$conf = array(
 	/**
 	 * Одно расширение, может содержать файлы для  подмены другого расширения. 
 	 * Записывается так "catalog"=>array("vendor/infrajs/cards/")
-	 * Файлы в папке *catalog/ будудут заменены на файлы в vendor/infrajs/cards/catalog/ при наличии
+	 * Файлы в папке -catalog/ будудут заменены на файлы в vendor/infrajs/cards/catalog/ при наличии
 	 **/
 	'clutch' => array()
 );
