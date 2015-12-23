@@ -309,10 +309,14 @@ class Path {
 	{
 		if (!is_file('vendor/autoload.php')) throw new \Exception("You should setting chdir() on site root directory with vendor/ folder"); 
 		$conf=static::$conf;
+		
 		if(!$conf['fs']) return;
 		$src=static::resolve($src);
-		if (!is_dir($src)) return mkdir($src);
-		return true;
+		if (!is_dir($src)) {
+			mkdir($src);
+			return $src;
+		}
+		return $src;
 	}
 	/**
 	 * Возвращает путь который можно использовать в стандартных функциях php. 
@@ -323,8 +327,10 @@ class Path {
 		if (!$src) return $src;
 		$ch=$src{0};
 		if ($ch == '-') throw new \Exception('Symbol - contain multiple paths and cant be resolving without request to the filesystem. Use theme() or fix src');
-		else if($ch == '~') return static::$conf['data'].substr($src, 1);	
-		else if($ch == '!') return static::$conf['cache'].substr($src, 1);	
+		else if($ch == '~') $src = static::$conf['data'].substr($src, 1);	
+		else if($ch == '!') $src = static::$conf['cache'].substr($src, 1);
+
+		$src=static::tofs($src);
 		return $src;
 	}
 	public static function pretty($src) 
