@@ -13,7 +13,7 @@ if (!is_dir($path['cache'])) {
 	Config::$install = true;
 	mkdir($path['cache']);
 }
-if (is_file($path['cache'].'update')) {
+if (is_file($path['data'].'update')) {
 	Config::$install = true;
-	unlink($path['cache'].'update');
+	unlink($path['data'].'update');
 }
