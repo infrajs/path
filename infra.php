@@ -14,6 +14,7 @@ if (!is_dir($path['cache'])) {
 	mkdir($path['cache']);
 }
 if (is_file($path['data'].'update')) {
+	header('Infrajs-Path-Update:true');
 	Config::$install = true;
 	unlink($path['data'].'update');
 }
