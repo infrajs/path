@@ -14,6 +14,7 @@ class Path {
 		'search' => array(
 			'vendor/infrajs/',
 			'vendor/components/',
+			"vendor/twbs/",
 			'bower_components/'
 		),
 		'clutch' => array()
