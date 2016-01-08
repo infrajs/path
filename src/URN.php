@@ -21,9 +21,9 @@ class URN {
 			} else {
 				$res['param'] = '';
 			}
-			
 			$amp = preg_split('/[&\?]/', $res['param'], 2);
 			$eq = explode('=', $amp[0], 2);
+
 			$sl = explode('/', $eq[0], 2);
 			if (sizeof($eq) !== 1 && sizeof($sl) === 1) {
 				//В первой крошке нельзя использовать символ "=" для совместимости с левыми параметрами для главной страницы, которая всё равно покажется
@@ -41,6 +41,7 @@ class URN {
 			//Чтобы получить на какую глубину надо отойти от текущего uri чтобы попасть в корень вебсервера
 			$req=explode('/', $res['request']);
 			$deep=sizeof($req)-1;
+
 			$res['root']=str_repeat('../', $deep);
 
 
@@ -52,7 +53,17 @@ class URN {
 		$res = static::parse();
 		return $res['root'];
 	}
+	public static function getAbsRoot()
+	{
+		$a=static::analize();
+		return $a['root'];
+	}
 	public static function getQuery()
+	{
+		$a=static::analize();
+		return $a['query'];
+	}
+	public static function analize()
 	{
 		return Once::exec('URN::getQuery', function () {
 			$uri=$_SERVER['REQUEST_URI'];
@@ -124,9 +135,13 @@ class URN {
 				
 			}
 			if (!$r) $try=array();
+			$root = implode('/', array_reverse($try));
+			if($root) $root = '/'.$root;
+			$root .= '/';
+
 			$req=array_slice(array_reverse($uri),sizeof($try));
 			$req=implode('/',$req);
-
+			
 
 			$query=urldecode($_SERVER['QUERY_STRING']);
 			
@@ -137,7 +152,7 @@ class URN {
 				if ($req) $query = $req;
 				else $query = '';
 			}
-			return $query;
+			return array('root'=>$root, 'query'=>$query);
 		});
 	}
 }
