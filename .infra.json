@@ -1,6 +1,7 @@
 {
 	"conf":"\\infrajs\\path\\Path",
 	"require":"infra.php",
+	"js":["src/URN.js"],
 	"fs": true,
 	"cache":"cache/",
 	"data":"data/",
