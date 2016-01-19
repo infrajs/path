@@ -30,6 +30,7 @@ class Path {
 		return Once::exec('infrajs::Path::init', function () {
 			$sefuri=static::$conf['sefurl'];
 			$res=URN::parse();
+			
 			$res['request2ch'] = $res['request2'] ? in_array($res['request2']{0}, array('-', '~', '!')) : false;
 			if ($sefuri) {
 				
@@ -113,7 +114,8 @@ class Path {
 	private static function redirect($src)
 	{
 		Nostore::pub();
-		$root=URN::getRoot();
+		$root = URN::getRoot();
+		$src = Path::toutf($src);
 		header('Location: ./'.$root.$src, true, 301);
 		exit;
 	}
