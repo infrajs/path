@@ -7,7 +7,6 @@
 	},
 	"require":{
 		"infrajs/once":"~1",
-		"infrajs/nostore":"~1",
-		"michelf/php-markdown":"~1"
+		"infrajs/nostore":"~1"
 	}
 }

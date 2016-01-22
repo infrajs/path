@@ -152,7 +152,6 @@ class URN {
 				if ($req) $query = $req;
 				else $query = '';
 			}
-			
 			return array('root'=>$root, 'query'=>$query);
 		});
 	}
