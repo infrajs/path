@@ -10,13 +10,6 @@ require_once('vendor/autoload.php');
 
 $path = Path::$conf;
 
-if (!is_dir($path['cache'])) {
-	Config::$install = true;
-	mkdir($path['cache']);
-}
-if ($path['fs']&&is_file($path['data'].'update')) {
-	header('Infrajs-Path-Update:true');
-	Path::fullrmdir($path['cache']);
-	Config::$install = true;
-	unlink($path['data'].'update');
+if ($path['fs']&&!is_dir($path['cache'])) {
+	Config::update();
 }
