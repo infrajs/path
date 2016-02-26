@@ -5,7 +5,7 @@
 	"fs": true,
 	"cache":"cache/",
 	"data":"data/",
-	"install":"update.php",
+	"update":"update.php",
 	"search":[
 		"vendor/infrajs/",
 		"vendor/twbs/",
