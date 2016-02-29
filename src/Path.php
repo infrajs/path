@@ -308,15 +308,15 @@ class Path {
 		$path=$p[0];
 		return strtolower(pathinfo($path, PATHINFO_EXTENSION));
 	}
-	public static function mkdir($src) //forFS
+	public static function mkdir($isrc) //forFS
 	{
 		if (!is_file('vendor/autoload.php')) throw new \Exception("You should setting chdir() on site root directory with vendor/ folder"); 
 		$conf=static::$conf;
-		
 		if(!$conf['fs']) return;
-		$src=static::resolve($src);
+		$src=static::resolve($isrc);
 		if (!is_dir($src)) {
 			mkdir($src);
+			Once::clear('Path::theme', [$isrc]);
 			return $src;
 		}
 		return $src;
@@ -398,11 +398,15 @@ class Path {
 				}
 				closedir($handle);
 				if ($ischild) {
+					//Once::clear('Path::theme', array(Path::resolve($delfile)));
+					//Once::clear('Path::theme', array($delfile));
 					return rmdir($delfile);
 				}
 
 				return true;
 			} else {
+				//Once::clear('Path::theme', array(Path::resolve($delfile)));
+				//Once::clear('Path::theme', array($delfile));
 				return unlink($delfile);
 			}
 		}
