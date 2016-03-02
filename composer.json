@@ -1,5 +1,6 @@
 {
 	"name": "infrajs/path",
+	"homepage":"https://github.com/infrajs/path",
 	"description": "Resolve paths on the file system. Provide point of view on form of paths to files and folders..",
 	"license": "GPL3",
 	"autoload": {
