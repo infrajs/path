@@ -8,6 +8,11 @@ if (!is_file('vendor/autoload.php')) {
 }
 require_once('vendor/autoload.php');
 
-$path = Path::$conf;
-
-
+//pathsearch Расширяет список вендоров у которых ищутся плагины для infrajs
+Config::add('pathsearch', function ($name, $value, &$conf) {
+	$path = &Path::$conf;
+	if (is_string($value)) $value = [$value];
+	for ($i=0, $l=sizeof($value); $i < $l; $i++) {
+		$path['search'][]=$value[$i];
+	}
+});
