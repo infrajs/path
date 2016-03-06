@@ -339,19 +339,21 @@ class Path {
 	public static function pretty($src) 
 	{
 		if (!$src) return $src;
-		$conf=static::$conf;
+		$conf = static::$conf;
 		
 		$path = str_replace('/', '\/', $conf['data']);
-		$src = preg_replace('/^'.$path.'/', '~', $src);
+		$src = preg_replace('/^'.$path.'/', '~', $src, 1, $count);
+		if ($count) return $src;
 
 		$path = str_replace('/', '\/', $conf['cache']);
-		$src = preg_replace('/^'.$path.'/', '!', $src);
+		$src = preg_replace('/^'.$path.'/', '!', $src, 1, $count);
+		if ($count) return $src;
 
-		foreach($conf['search'] as $path) {
+		foreach ($conf['search'] as $path) {
 			$path = str_replace('/', '\/', $path);
-			$src = preg_replace('/^'.$path.'/', '-', $src);
+			$src = preg_replace('/^'.$path.'/', '-', $src, 1, $count);
+			if ($count) return $src;
 		}
-
 		return $src;
 	}
 	public static function reqif($path)
