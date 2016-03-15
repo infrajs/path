@@ -61,7 +61,8 @@
 		},
 		getRoot: function ()
 		{
-			var res = URN.parse();
+			var query = URN.getQuery();
+			var res = URN.parse(query);
 			return res['root'];
 		},
 		getAbsRoot: function ()
