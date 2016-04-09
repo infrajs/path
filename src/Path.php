@@ -7,7 +7,6 @@ use infrajs\nostore\Nostore;
 class Path {
 
 	public static $conf = array(
-		'sefurl' => false,
 		'data' => 'data/',
 		'cache' => 'cache/',
 		'fs' => true,
@@ -28,87 +27,71 @@ class Path {
 	public static function init()
 	{
 		return Once::exec('infrajs::Path::init', function () {
-			$sefuri=static::$conf['sefurl'];
 			$res=URN::parse();
 			
 			$res['request2ch'] = $res['request2'] ? in_array($res['request2']{0}, array('-', '~', '!')) : false;
-			if ($sefuri) {
 				
 				
-				/*
-					Ситуация
-					site.ru/adsf?-admin/
-					site.ru/sadf?vendor/infrajs/admin/
-					site.ru/asdf?vendor/infrajs/admin/index.php
-				*/
-				
-				if ( $res['request2ch'] || Path::theme($res['request2']) ) {
-					if($res['param2']) Path::redirect($res['request2'].'?'.$res['param2']);
-					else Path::redirect($res['request2']);
-				}
+			/*
+				Ситуация
+				site.ru/adsf?-admin/
+				site.ru/sadf?vendor/infrajs/admin/
+				site.ru/asdf?vendor/infrajs/admin/index.php
+			*/
+			
+			if ( $res['request2ch'] || Path::theme($res['request2']) ) {
+				if($res['param2']) Path::redirect($res['request2'].'?'.$res['param2']);
+				else Path::redirect($res['request2']);
+			}
 
-				/*
-					Ситуация
-					site/?login = site/login
-					site/-asdf?login = site/-asdf?login
-					site/catalog?contacts = site/contacts
-				*/
-				$res['requestch'] = $res['request'] ? in_array($res['request']{0}, array('-', '~', '!')) : false;
-				if(!$res['requestch']&&!Path::theme($res['request'])&&$res['request2']) {
-					//Чтобы работали старые ссылки
-					if($res['param2']) Path::redirect($res['request2'].'?'.$res['param2']);
-					else Path::redirect($res['request2']);
-				}
-				
-				
-				//exit;
-				//$res['request2dir'] = Path::isdir($res['request2']);
-				//$res['request2ext'] = Path::getExt($res['request2']);
-				
-				$res['requestdir'] = Path::isdir($res['request']);
+			/*
+				Ситуация
+				site/?login = site/login
+				site/-asdf?login = site/-asdf?login
+				site/catalog?contacts = site/contacts
+			*/
+			$res['requestch'] = $res['request'] ? in_array($res['request']{0}, array('-', '~', '!')) : false;
+			if(!$res['requestch']&&!Path::theme($res['request'])&&$res['request2']) {
+				//Чтобы работали старые ссылки
+				if($res['param2']) Path::redirect($res['request2'].'?'.$res['param2']);
+				else Path::redirect($res['request2']);
+			}
+			
+			
+			//exit;
+			//$res['request2dir'] = Path::isdir($res['request2']);
+			//$res['request2ext'] = Path::getExt($res['request2']);
+			
+			$res['requestdir'] = Path::isdir($res['request']);
 
-				if ($res['request']) {
-					
-					if ( $res['requestch'] ) {
-						//файл не проверяем. отсутствует всёравно идём в go
-						$query = $res['query'];
+			if ($res['request']) {
+				
+				if ( $res['requestch'] ) {
+					//файл не проверяем. отсутствует всёравно идём в go
+					$query = $res['query'];
+					if($res['requestdir']){
+						$p=explode('?', $res['query'], 2);
+						$p[0] .='index.php';
+						$query=implode('?', $p);
+					}
+					Path::go($query);
+					exit;
+				} else {
+					$file=Path::theme($res['request']);
+					if($file) { //Если файл отсутствует проходим дальше
 						if($res['requestdir']){
 							$p=explode('?', $res['query'], 2);
 							$p[0] .='index.php';
-							$query=implode('?', $p);
+							$file=implode('?', $p);
 						}
-						Path::go($query);
-						exit;
-					} else {
-						$file=Path::theme($res['request']);
-						if($file) { //Если файл отсутствует проходим дальше
-							if($res['requestdir']){
-								$p=explode('?', $res['query'], 2);
-								$p[0] .='index.php';
-								$file=implode('?', $p);
-							}
 
-							if(Path::theme($file)) {
-								Path::go($file);
-							}
+						if(Path::theme($file)) {
+							Path::go($file);
 						}
-					}
-				}				
-				return $res['query'];
-			} else {
-
-				$file=Path::theme($res['request2']);
-				if($file||$res['request2ch']) {
-					if (Path::isdir($res['request2'])) {
-						if($res['param2']) Path::go($res['request2'].'index.php?'.$res['param2']);
-						else Path::go($res['request2'].'index.php');
-					} else if($file) {
-						Path::go($res['param']);
 					}
 				}
-						
-				return $res['param'];
-			}
+			}				
+			return $res['query'];
 		});
 	}
 	private static function redirect($src)
@@ -193,7 +176,6 @@ class Path {
 	{
 		$conf=static::$conf;
 		$query=urldecode($_SERVER['QUERY_STRING']);
-		if (!$conf['sefurl']) return $query;
 		return URN::getQuery();
 	}
 	public static function inc($src)
