@@ -27,19 +27,19 @@ if (!is_file('vendor/autoload.php')) {
 	chdir('../../../'); //Согласно фактическому расположению файла
 	require_once('vendor/autoload.php');
 }
+```
 
 ## Требуется настройка modrewrite в .htaccess
 Все запросы для которых нет файла перенаправляются на обработчик vendor/infrajs/path/index.php
 ```
-	RewriteEngine on
-	RewriteCond %{REQUEST_FILENAME} !-f
-	RewriteRule ^(.*)$ vendor/infrajs/path/index.php [L,QSA]
+RewriteEngine on
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ vendor/infrajs/path/index.php [L,QSA]
 ``` 
 
 Если сайт использует сторонний контроллер и перенаправлять все запросы нельзя нужно настроить более точное условие и перенаправлять на обработчик только запросы начинающиеся со специальных символов [-~!]
 TODO: добавить код точной переадресации
 
-```
 ## Path конфиг
 В ```Path::$conf``` указывается куда ведут принятые сокращения "-", "~", "!":
 
@@ -59,7 +59,7 @@ TODO: добавить код точной переадресации
 		"bower_components/"
 	],
 	"clutch": {}
-);
+}
 ```
 
 ### Расширяемость clutch
