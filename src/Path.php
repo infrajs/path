@@ -63,34 +63,36 @@ class Path {
 			//$res['request2ext'] = Path::getExt($res['request2']);
 			
 			$res['requestdir'] = Path::isdir($res['request']);
-
-			if ($res['request']) {
+			if (!$res['request']) {
+				$res['requestdir'] = true;
+				$file='./';
+			} else {
+				$file = Path::theme($res['request']);
+			}
+			
 				
-				if ( $res['requestch'] ) {
-					//файл не проверяем. отсутствует всёравно идём в go
-					$query = $res['query'];
+			if ( $res['requestch'] ) {
+				//файл не проверяем. отсутствует всёравно идём в go
+				$query = $res['query'];
+				if($res['requestdir']){
+					$p=explode('?', $res['query'], 2);
+					$p[0] .= 'index.php';
+					$query=implode('?', $p);
+				}
+				Path::go($query);
+				exit;
+			} else {
+				if($file) { //Если файл отсутствует проходим дальше
 					if($res['requestdir']){
 						$p=explode('?', $res['query'], 2);
 						$p[0] .='index.php';
-						$query=implode('?', $p);
+						$file = implode('?', $p);
 					}
-					Path::go($query);
-					exit;
-				} else {
-					$file=Path::theme($res['request']);
-					if($file) { //Если файл отсутствует проходим дальше
-						if($res['requestdir']){
-							$p=explode('?', $res['query'], 2);
-							$p[0] .='index.php';
-							$file=implode('?', $p);
-						}
-
-						if(Path::theme($file)) {
-							Path::go($file);
-						}
+					if(Path::theme($file)) { //Если есть index.php в папке или просто указанный файл есть
+						Path::go($file);
 					}
 				}
-			}				
+			}
 			return $res['query'];
 		});
 	}

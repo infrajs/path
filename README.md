@@ -30,11 +30,11 @@ if (!is_file('vendor/autoload.php')) {
 ```
 
 ## Требуется настройка modrewrite в .htaccess
-Все запросы для которых нет файла перенаправляются на обработчик vendor/infrajs/path/index.php
+Все запросы для которых нет файла перенаправляются на обработчик vendor/infrajs/path/router.php
 ```
 RewriteEngine on
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^(.*)$ vendor/infrajs/path/index.php [L,QSA]
+RewriteRule ^(.*)$ vendor/infrajs/path/router.php [L,QSA]
 ``` 
 
 Если сайт использует сторонний контроллер и перенаправлять все запросы нельзя нужно настроить более точное условие и перенаправлять на обработчик только запросы начинающиеся со специальных символов [-~!]
@@ -81,8 +81,8 @@ TODO: добавить код точной переадресации
 $query = Path::init(); //$query содержит запрос для которого не нашлось решения иначе выполнится exit;
 echo Path::theme('~mypic.jpg'); //если файл есть "data/mypic.jpg" иначе false
 echo Path::resolve('~mypic.jpg'); //всегда "data/mypic.jpg"
-Path::req('-path/index.php'); //Аналог require_once с поддержкой спецсимволов
-Path::reqif('-path/index.php'); //Не приводит к ошибке если файл отсутствует
+Path::req('-path/file.php'); //Аналог require_once с поддержкой спецсимволов
+Path::reqif('-path/file.php'); //Не приводит к ошибке если файл отсутствует
 echo Path::toutf($str); //Конвертирует строку в кодировку UTF-8
 echo Path::tofs($str); //Конвертирует строку в кодировку файловой системы cp1251 под windows, depricated, используется при использовании кирилицы вименах файлов
 echo Path::encode($str); //Ковертирует строку в последовательность которую можно использовать в имени файла - удаляются запрещённые символы
