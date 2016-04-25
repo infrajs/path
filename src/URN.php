@@ -12,7 +12,6 @@ class URN {
 	{
 		return Once::exec('infrajs::URN::parse '.$query, function () use ($query) {
 			if (is_null($query)) $query = static::getQuery();
-			
 			$res=array('query'=>$query);
 			$p = explode('?', $query, 2);
 			$res['request']=$p[0];
@@ -44,7 +43,6 @@ class URN {
 
 			$res['root']=str_repeat('../', $deep);
 
-
 			return $res;
 		});
 	}
@@ -66,7 +64,7 @@ class URN {
 	public static function analize()
 	{
 		return Once::exec('URN::getQuery', function () {
-			$uri=$_SERVER['REQUEST_URI'];
+			$uri = $_SERVER['REQUEST_URI'];
 			$p=explode('?',$uri,2);
 			$uri=urldecode($p[0]);
 			

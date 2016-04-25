@@ -27,7 +27,7 @@ class Path {
 	public static function init()
 	{
 		return Once::exec('infrajs::Path::init', function () {
-			$res=URN::parse();
+			$res = URN::parse();
 			
 			$res['request2ch'] = $res['request2'] ? in_array($res['request2']{0}, array('-', '~', '!')) : false;
 				
@@ -44,6 +44,7 @@ class Path {
 				else Path::redirect($res['request2']);
 			}
 
+
 			/*
 				Ситуация
 				site/?login = site/login
@@ -56,7 +57,6 @@ class Path {
 				if($res['param2']) Path::redirect($res['request2'].'?'.$res['param2']);
 				else Path::redirect($res['request2']);
 			}
-			
 			
 			//exit;
 			//$res['request2dir'] = Path::isdir($res['request2']);
@@ -79,16 +79,23 @@ class Path {
 					$p[0] .= 'index.php';
 					$query=implode('?', $p);
 				}
-				Path::go($query);
-				exit;
+				/*if (in_array($query{0}, array('~', '!'))) {
+					$query = Path::toutf(Path::resolve($query));
+					Path::redirect($query);
+					exit;
+				}*/
+				
+				if (Path::theme($query)) {
+					Path::go($query);
+				}
 			} else {
-				if($file) { //Если файл отсутствует проходим дальше
-					if($res['requestdir']){
+				if ($file) { //Если файл отсутствует проходим дальше
+					if ($res['requestdir']) {
 						$p=explode('?', $res['query'], 2);
 						$p[0] .='index.php';
 						$file = implode('?', $p);
 					}
-					if(Path::theme($file)) { //Если есть index.php в папке или просто указанный файл есть
+					if (Path::theme($file)) { //Если есть index.php в папке или просто указанный файл есть
 						Path::go($file);
 					}
 				}
@@ -107,7 +114,7 @@ class Path {
 	public static function go($query)
 	{
 
-		$query=Path::theme($query);
+		$query = Path::theme($query);
 
 		if (!$query) {
 			http_response_code(404);
