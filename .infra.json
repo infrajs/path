@@ -1,15 +1,11 @@
 {
 	"conf":"\\infrajs\\path\\Path",
-	"require":"infra.php",
-	"js":["src/URN.js"],
+	"js":["URN.js"],
 	"fs": true,
 	"cache":"cache/",
 	"data":"data/",
 	"update":"update.php",
 	"search":[
-		"vendor/infrajs/",
-		"vendor/twbs/",
-		"vendor/components/",
-		"bower_components/"
+		"vendor/infrajs/"
 	]
 }

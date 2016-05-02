@@ -11,10 +11,7 @@ class Path {
 		'cache' => 'cache/',
 		'fs' => true,
 		'search' => array(
-			'vendor/infrajs/',
-			'vendor/components/',
-			"vendor/twbs/",
-			'bower_components/'
+			'vendor/infrajs/'
 		),
 		'clutch' => array()
 	);
@@ -207,8 +204,8 @@ class Path {
 	{
 		$p=explode('?', $src, 2);
 		$query = (sizeof($p) == 2) ? '?'.$p[1] : '';
-		$args=array($p[0]);
-		$src=Once::exec('Path::theme', function ($str) {
+		$args = array($p[0]);
+		$src = Once::exec('Path::theme', function ($str) {
 			//Повторно для адреса не работает Путь только отностельно корня сайта или со звёздочкой
 			//Скрытые файлы доступны
 
@@ -229,7 +226,7 @@ class Path {
 				$str = mb_substr($str, 1);
 				$str = Path::tofs($str);
 				
-				$p=explode('/', $str); //file.ext folder/ folder/file.ext folder/dir/file.ext
+				$p = explode('/', $str); //file.ext folder/ folder/file.ext folder/dir/file.ext
 				if(sizeof($p)>1){
 					if(!empty($conf['clutch'][$p[0]])) {
 						foreach ($conf['clutch'][$p[0]] as $dir) {
