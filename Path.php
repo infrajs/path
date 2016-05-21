@@ -197,7 +197,7 @@ class Path {
 		$_REQUEST = array_merge($_GET, $_POST);
 		$_SERVER['QUERY_STRING'] = $getstr;
 
-		include $path; //После подключения скрипта работа останавливается. Возвращать старые значения не нужно.
+		include getcwd().'/'.$path; //После подключения скрипта работа останавливается. Возвращать старые значения не нужно.
 		return true;
 	}
 	public static function theme($src)
