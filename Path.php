@@ -72,15 +72,15 @@ class Path {
 				//файл не проверяем. отсутствует всёравно идём в go
 				$query = $res['query'];
 				if($res['requestdir']){
-					$p=explode('?', $res['query'], 2);
+					$p = explode('?', $res['query'], 2);
 					$p[0] .= 'index.php';
 					$query=implode('?', $p);
+					if (!Path::theme($query)) {
+						$p = explode('?', $res['query'], 2);
+						$p[0] .= 'index.html';
+						$query=implode('?', $p);
+					}
 				}
-				/*if (in_array($query{0}, array('~', '!'))) {
-					$query = Path::toutf(Path::resolve($query));
-					Path::redirect($query);
-					exit;
-				}*/
 				
 				if (Path::theme($query)) {
 					Path::go($query);
@@ -91,6 +91,11 @@ class Path {
 						$p=explode('?', $res['query'], 2);
 						$p[0] .='index.php';
 						$file = implode('?', $p);
+						if (!Path::theme($file)) {
+							$p = explode('?', $res['query'], 2);
+							$p[0] .= 'index.html';
+							$file = implode('?', $p);
+						}
 					}
 					if (Path::theme($file)) { //Если есть index.php в папке или просто указанный файл есть
 						Path::go($file);
@@ -236,7 +241,11 @@ class Path {
 				}
 				
 				if ($is_fn($str)) return $str; //Корень важней search, clutch важней корня
-
+				if ( $p[0] == 'index') {
+					array_shift($p);
+					$s = implode('/',$p);
+					if ($is_fn($s)) return $s;
+				}
 				foreach ($conf['search'] as $dir) {
 					if ($is_fn($dir.$str)) return $dir.$str;
 				}

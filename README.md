@@ -54,15 +54,12 @@ TODO: добавить код точной переадресации
 	"cache": "cache/",
 	"fs": true,
 	"search":[
-		"vendor/infrajs/",
-		"vendor/components/",
-		"bower_components/"
+		"vendor/infrajs/"
 	],
 	"clutch": {}
 }
 ```
-
-### Расширяемость clutch
+## Расширяемость clutch
 Одно расширение, может содержать файлы для подмены другого расширения 
 ```json
 	"clutch":{
@@ -75,6 +72,12 @@ TODO: добавить код точной переадресации
 ## Примеры
 * ```site.ru/~mypic.jpg``` - указывает на файл ```site.ru/data/mypic.jpg```
 * ```site.ru/-path/test.jpg``` - указывает на файл ```site.ru/vendor/infrajs/path/test.jpg```
+
+## Синоним корня index/
+* ```site.ru/-index/test.html``` - указывает на файл ```site.ru/test.html```
+
+## DirectoryIndex
+Если адресная строка содержит путь к **-папке/**, ищутся файлы **index.php** или **index.html**. Если файлов нет, то путь до папки будет считаться 404 ошибкой.
 
 ## API
 ```php
