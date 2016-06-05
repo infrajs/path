@@ -245,6 +245,9 @@ class Path {
 					array_shift($p);
 					$s = implode('/',$p);
 					if ($is_fn($s)) return $s;
+				} else {
+					$s = 'index/'.$str;
+					if ($is_fn($s)) return $s;
 				}
 				foreach ($conf['search'] as $dir) {
 					if ($is_fn($dir.$str)) return $dir.$str;
