@@ -1,6 +1,6 @@
 {
 	"conf":"\\infrajs\\path\\Path",
-	"js":["URN.js"],
+	"js":["URN.js","Path.js"],
 	"fs": true,
 	"cache":"cache/",
 	"data":"data/",
