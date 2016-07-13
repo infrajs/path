@@ -420,13 +420,15 @@ class Path {
 	 **/
 	public static function isNest($root, $dir) {
 		$src = Path::theme($dir);
-		if(!$src) return false;
+		if (!$src) return false;
 		$src = realpath($src);
-		if(!$src) return false;
+		if (!$src) return false;
 		$home = Path::theme($root);
-		if(!$home) return false;
+		if (!$home) return false;
 		$home = realpath($home);
-		if(!$home) return false;
+		if (!$home) return false;
+		if (preg_match('/\\'.DIRECTORY_SEPARATOR.'\./',$home)) return false;
+		if (preg_match('/\\'.DIRECTORY_SEPARATOR.'\./',$src)) return false;
 		$p = explode($home, $src, 2);
 		if (sizeof($p)!=2||$p[0]||!$p[1]) return false;
 		return true;
