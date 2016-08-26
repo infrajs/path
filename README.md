@@ -63,16 +63,25 @@ TODO: добавить код точной переадресации
 	"clutch": {}
 }
 ```
-## Расширяемость clutch
+## Расширяемость расширений - clutch
 Одно расширение, может содержать файлы для подмены другого расширения 
+
+Конфиг расширения cart может содержать такой конфиг и вложенные папки pixeden-stroke-7-icon и cart. 
 ```json
 	"clutch":{
-		"catalog":["vendor/infrajs/cards/"]
+		"catalog":"vendor/infrajs/cart/",
+		"pixeden-stroke-7-icon":[
+			"vendor/grimmlink/",
+			"vendor/infrajs/cart/"
+		]
 	}
 ```
 Файл "-catalog/some.php" возьмётся из папки vendor/infrajs/cards/catalog/some.php если такой файл там будет иначе будет использоваться файл vendor/infrajs/catalog/some.php
 При разрешении адреса начинающегося с символа "-" корень проекта имеет наивысший приоритет, за которым следует папка с данными "~" и затем идут папки ```conf.search``` начиная с последней. Первый путь в ```conf.search``` имеет наименьший приоритет.
 
+С помощью clutch можно "подмешать" к стороннему расширению новые файлы или подменить существующие, например добавить конфигурационый файл [.infra.json](https://github.com/infrajs/config) с настройками авторматической интеграции расширения в систему [infrajs/collect](https://github.com/infrajs/collect).
+
+Так как расширение pixeden-stroke-7-icon стороннего производителя и не содержит конфигурационного файла .infra.json нужно ещё и на него явно указать чтобы оно участвовало в поиске файлов (-)
 ## Примеры
 * ```site.ru/~mypic.jpg``` - указывает на файл ```site.ru/data/mypic.jpg```
 * ```site.ru/-path/test.jpg``` - указывает на файл ```site.ru/vendor/infrajs/path/test.jpg```
