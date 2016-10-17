@@ -129,10 +129,12 @@ class Path {
 			http_response_code(403); //Forbidden
 			exit;
 		}
+		/*
+		symlinks data error fix
 		if(strpos(realpath($p[0]), realpath('./')) !== 0) { //Проверка что доступ к внутреннему ресурсу
 			http_response_code(403);
 			exit;
-		}
+		}*/
 
 		//Узнать текущий путь браузера можно из REQUEST_URI, но узнать какая из папок в этом адресе является корнем проекта невозможно. 
 		//Эта задача решаема только для частных случаев.
