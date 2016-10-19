@@ -33,6 +33,14 @@ if (!is_file('vendor/autoload.php')) {
 }
 ```
 
+Универсальный вариант
+```php
+if (!is_file('vendor/autoload.php')) {
+	chdir(explode('vendor'.DIRECTORY_SEPARATOR, __DIR__)[0]);
+	require_once('vendor/autoload.php');
+	Router::init();
+}
+```
 ## Требуется настройка modrewrite в .htaccess
 Все запросы для которых нет файла перенаправляются на обработчик vendor/infrajs/path/router.php
 ```
