@@ -234,16 +234,10 @@ class Path {
 				$str = Path::tofs($str);
 				
 				$p = explode('/', $str); //file.ext folder/ folder/file.ext folder/dir/file.ext
-				if(sizeof($p)>1){
-					if(!empty($conf['clutch'][$p[0]])) {
-						foreach ($conf['clutch'][$p[0]] as $dir) {
-							if ($is_fn($dir.$str)) return $dir.$str;
-						}
-					}
-				}
 				
-				if ($is_fn($str)) return $str; //Корень важней search, clutch важней корня
-				if ( $p[0] == 'index') {
+				
+				if ($is_fn($str)) return $str; //ПОИСК в корне
+				if ($p[0] == 'index') {
 					array_shift($p);
 					$s = implode('/',$p);
 					if ($is_fn($s)) return $s;
@@ -251,7 +245,17 @@ class Path {
 					$s = 'index/'.$str;
 					if ($is_fn($s)) return $s;
 				}
-				foreach ($conf['search'] as $dir) {
+				
+
+				if (sizeof($p) > 1) { //ПОИСК clutch
+					if (!empty($conf['clutch'][$p[0]])) {
+						foreach ($conf['clutch'][$p[0]] as $dir) {
+							if ($is_fn($dir.$str)) return $dir.$str;
+						}
+					}
+				}
+
+				foreach ($conf['search'] as $dir) { //ПОИСК search
 					if ($is_fn($dir.$str)) return $dir.$str;
 				}
 
