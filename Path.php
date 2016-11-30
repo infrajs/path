@@ -213,7 +213,8 @@ class Path {
 		$p=explode('?', $src, 2);
 		$query = (sizeof($p) == 2) ? '?'.$p[1] : '';
 		$args = array($p[0]);
-		$src = Once::exec('Path::theme', function ($str) {
+		$src = Once::exec(__FILE__.'Path::theme', function ($str) {
+			
 			//Повторно для адреса не работает Путь только отностельно корня сайта или со звёздочкой
 			//Скрытые файлы доступны
 
@@ -221,11 +222,14 @@ class Path {
 			$conf = Path::$conf;
 			if (!$str) return false;
 			
-
+			
 			$is_fn = (mb_substr($str, mb_strlen($str) - 1, 1) == '/' || in_array($str,array('-', '~', '!'))) ? 'is_dir' : 'is_file';
 			
 
-			$ch=mb_substr($str, 0, 1);
+			$ch = mb_substr($str, 0, 1);
+
+
+
 			if ($ch == '~') {
 				$str = mb_substr($str, 1);
 				$str = Path::tofs($str);
@@ -236,6 +240,7 @@ class Path {
 				
 				$p = explode('/', $str); //file.ext folder/ folder/file.ext folder/dir/file.ext
 				
+
 				
 				if ($is_fn($str)) return $str; //ПОИСК в корне
 				if ($p[0] == 'index') {
@@ -255,11 +260,10 @@ class Path {
 						}
 					}
 				}
-
+				
 				foreach ($conf['search'] as $dir) { //ПОИСК search
 					if ($is_fn($dir.$str)) return $dir.$str;
 				}
-
 			} else if ($ch == '!') {
 				$str = mb_substr($str, 1);
 				$str = Path::tofs($str);
@@ -273,6 +277,9 @@ class Path {
 			}
 			return false;
 		}, $args);
+
+		
+
 		if(!$src) return false;
 		return $src.$query;
 	}
