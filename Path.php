@@ -3,14 +3,16 @@ namespace infrajs\path;
 
 use infrajs\once\Once;
 use infrajs\nostore\Nostore;
+use infrajs\config\Config;
 
 class Path {
-
+	//Для конфига Path дейстует исключение - его параметры самые важные тут, а не в корне.
+	//ERROR параметры Path изменять нельзя в проекте, только заменой самого Path. Кроме space он не указан здесь.
 	public static $conf = array(
 		'data' => 'data/',
 		'cache' => 'cache/',
 		'fs' => true,
-		"space" => false,
+		//'space' => false,
 		'search' => array(
 			'vendor/infrajs/'
 		),
@@ -292,7 +294,7 @@ class Path {
 	}
 	public static function tofs($str)
 	{
-		if(isset($_SERVER['WINDIR'])){
+		if (isset($_SERVER['WINDIR'])){
 			$str = Path::toutf($str);
 			$str = iconv('UTF-8', 'CP1251', $str);
 		}
