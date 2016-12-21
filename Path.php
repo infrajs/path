@@ -316,7 +316,7 @@ class Path {
 		$str = preg_replace('/^\s+/', '', $str);
 		$str = preg_replace('/\s+$/', '', $str);
 		$str = preg_replace('/\s+/', ' ', $str);
-		if (!Path::$conf['space']) {
+		if (empty(Path::$conf['space'])) {
 			$str = preg_replace('/\s/', '-', $str);
 		}
 		if (mb_strlen($str) > 50) $str = md5($str);//У файловых систем есть ограничение на длину имени файла
