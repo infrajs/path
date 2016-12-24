@@ -334,7 +334,8 @@ class Path {
 		if(!$conf['fs']) return;
 		$src=static::resolve($isrc);
 		if (!is_dir($src)) {
-			mkdir($src);
+			$r = mkdir($src);
+			if (!$r) throw new \Exception('Не удалось создать папку '.$src);
 			Once::clear('Path::theme', [$isrc]);
 			return $src;
 		}
