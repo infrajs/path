@@ -16,12 +16,20 @@ window.Path = {
 		//Точка (.) Используется в скртиптах name.prop.value и такое значени может браться из адреса. pro.p.value точка в имени поломает это
 		//% приводит к ошибке malfomed URI при попадании в адрес так как там используется decodeURI
 		//Пробельные символы кодируются в адресе и не приняты в файловой системе, но из-за совместимости пока остаются. Папки каталога давно созданы и нельзя изменить логику, так как папки перестанут совпадать с именем
+		//() нужно убрать, чтобы работали jquery селекторы
 
-		str = str.replace(/[\.\+%\*<>\'"\|\:\/\\\\#\?\$&\s]/g,' ');
+		var conf = Config.get('path');
+
+		str = str.replace(/[\'\`"\.\+%\*<>\'"\|\:\/\\\\#\!\?\$&\s]/g,' ');
+		if (!conf.parenthesis) str = str.replace(/[\(\)]/g,' ');
+
 		str = str.replace(/^\s+/g,'');
 		str = str.replace(/\s+$/g,'');
 		str = str.replace(/\s+/g,' ');
 
+		var conf = Config.get('path');
+		if (!conf.space) str = str.replace(/\s/g, '-');
+		if (str.lenght > 50) console.error('Слишком длинная строка Path.encode',str);
 		return str;
 	}
 }
