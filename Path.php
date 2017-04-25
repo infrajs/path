@@ -12,8 +12,9 @@ class Path {
 		'data' => 'data/',
 		'cache' => 'cache/',
 		'fs' => true,
-		//'space' => false,
-		//'parenthesis' => false,
+		"replaceable" => true, //Меняет порядок наследования, так как это свойство ядерное
+		'space' => false,
+		'parenthesis' => false,
 		'search' => array(
 			'vendor/infrajs/'
 		),
@@ -71,6 +72,7 @@ class Path {
 				$file = Path::theme($res['request']);
 			}
 			
+
 				
 			if ( $res['requestch'] ) {
 				//файл не проверяем. отсутствует всёравно идём в go
@@ -296,6 +298,11 @@ class Path {
 	public static function tofs($str)
 	{
 		if (isset($_SERVER['WINDIR'])){
+			if (strstr($str, '‐')!==false) {
+				$str = str_replace('‐', '-', $str);
+				//die('"'.$str. '" - В строке содержится некорректный символ "-".');
+				//Это разные символы. При кодировки в cp1251 первый приводит к ошибке.
+			}
 			$str = Path::toutf($str);
 			$str = iconv('UTF-8', 'CP1251', $str);
 		}
@@ -314,17 +321,17 @@ class Path {
 		//% приводит к ошибке malfomed URI при попадании в адрес так как там используется decodeURI
 		//Пробельные символы кодируются в адресе и не приняты в файловой системе, но из-за совместимости пока остаются. Папки каталога давно созданы и нельзя изменить логику, так как папки перестанут совпадать с именем
 		//() нужно убрать, чтобы работали jquery селекторы
-
-		$str = preg_replace('/[\'\`"\.\+%\*<>\'"\|\:\/\\\\#\!\?\$&\s]/', ' ', $str);
+		//, используется для перечислений в имени файла, одна картинка для нескольких артикулов
+		$str = preg_replace('/[\'\`"\.,\+%\*<>\-\'"\|\:\/\\\\#\!\?\$&\s]/', ' ', $str);
 		if (empty(Path::$conf['parenthesis'])) {
 			$str = preg_replace('/[\(\)]/', ' ', $str);
 		}
 		$str = preg_replace('/^\s+/', '', $str);
 		$str = preg_replace('/\s+$/', '', $str);
 		$str = preg_replace('/\s+/', ' ', $str);
-		if (empty(Path::$conf['space'])) {
+		//if (empty(Path::$conf['space'])) {
 			$str = preg_replace('/\s/', '-', $str);
-		}
+		//}
 		if (mb_strlen($str) > 50) $str = md5($str);//У файловых систем есть ограничение на длину имени файла
 		return $str;
 	}
