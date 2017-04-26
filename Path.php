@@ -12,7 +12,7 @@ class Path {
 		'data' => 'data/',
 		'cache' => 'cache/',
 		'fs' => true,
-		"replaceable" => true, //Меняет порядок наследования, так как это свойство ядерное
+		//"replaceable" => true, //Меняет порядок наследования, так как это свойство ядерное
 		'space' => false,
 		'parenthesis' => false,
 		'search' => array(

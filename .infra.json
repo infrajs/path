@@ -3,7 +3,6 @@
 	"js":["URN.js","Path.js"],
 	"pub":["space","parenthesis"],
 	"fs": true,
-	"replaceable":true,
 	"cache":"cache/",
 	"data":"data/",
 	"auto":"data/auto/",
