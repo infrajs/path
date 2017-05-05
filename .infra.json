@@ -6,8 +6,5 @@
 	"cache":"cache/",
 	"data":"data/",
 	"auto":"data/auto/",
-	"update":"update.php",
-	"search!":[
-		"vendor/infrajs/"
-	]
+	"update":"update.php"
 }

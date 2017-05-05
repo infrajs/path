@@ -15,10 +15,10 @@ class Path {
 		//"replaceable" => true, //Меняет порядок наследования, так как это свойство ядерное
 		'space' => false,
 		'parenthesis' => false,
-		'search' => array(
-			'vendor/infrajs/'
-		),
-		'clutch' => array()
+		//'search' => array(
+		//	'vendor/infrajs/'
+		//),
+		//'clutch' => array()
 	);
 	
 	/**
