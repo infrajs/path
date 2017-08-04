@@ -74,24 +74,46 @@ class Path {
 			
 
 				
-			if ( $res['requestch'] ) {
+			if ( $res['requestch'] ) { //Есть специальный символ в запросе
 				//файл не проверяем. отсутствует всёравно идём в go
 				$query = $res['query'];
-				if($res['requestdir']){
-					$p = explode('?', $res['query'], 2);
-					$p[0] .= 'index.php';
-					$query=implode('?', $p);
-					if (!Path::theme($query)) {
-						$p = explode('?', $res['query'], 2);
-						$p[0] .= 'index.html';
-						$query=implode('?', $p);
+
+				
+
+				if (!$res['requestdir']) {
+					if (Path::theme($query)) {
+						Path::go($query);
 					}
 				}
+
+				$p = explode('?', $res['query'], 2);
+				$ff = explode('/', $p[0]);
+
+				if (!$res['requestdir']) {
+					array_push($ff,'');
+				}
+				array_push($ff,'');
+				
+				do {
+					array_pop($ff);
+					$ff[sizeof($ff)-1] = 'index.php';
+					$p[0] = implode('/', $ff);
+					$query = implode('?', $p);
+
+					if (!Path::theme($query)) {
+						$ff[sizeof($ff)-1] = 'index.html';
+						$p[0] = implode('/', $ff);
+						$query = implode('?', $p);
+
+					}
+				} while (!Path::theme($query) && sizeof($ff)>2);
+
 				
 				if (Path::theme($query)) {
 					Path::go($query);
 				}
 			} else {
+
 				if ($file) { //Если файл отсутствует проходим дальше
 					if ($res['requestdir']) {
 						$p=explode('?', $res['query'], 2);
