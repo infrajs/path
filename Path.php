@@ -229,6 +229,7 @@ class Path {
 		parse_str($getstr, $get);
 		if (!$get) $get = array();
 		$_GET = $get;
+		if (!is_array($_POST)) $_POST = array();
 		$_REQUEST = array_merge($_GET, $_POST);
 		$_SERVER['QUERY_STRING'] = $getstr;
 
