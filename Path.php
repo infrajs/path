@@ -79,39 +79,11 @@ class Path {
 				$query = $res['query'];
 
 				
+				$query = Path::themeq($query);
+				if ($query) Path::go($query);
 
-				if (!$res['requestdir']) {
-					if (Path::theme($query)) {
-						Path::go($query);
-					}
-				}
-
-				$p = explode('?', $res['query'], 2);
-				$ff = explode('/', $p[0]);
-
-				if (!$res['requestdir']) {
-					array_push($ff,'');
-				}
-				array_push($ff,'');
-				
-				do {
-					array_pop($ff);
-					$ff[sizeof($ff)-1] = 'index.php';
-					$p[0] = implode('/', $ff);
-					$query = implode('?', $p);
-
-					if (!Path::theme($query)) {
-						$ff[sizeof($ff)-1] = 'index.html';
-						$p[0] = implode('/', $ff);
-						$query = implode('?', $p);
-
-					}
-				} while (!Path::theme($query) && sizeof($ff)>2);
 
 				
-				if (Path::theme($query)) {
-					Path::go($query);
-				}
 			} else {
 
 				if ($file) { //Если файл отсутствует проходим дальше
@@ -132,6 +104,37 @@ class Path {
 			}
 			return $res['query'];
 		});
+	}
+	public static function themeq($query) {
+		$requestdir = Path::isdir($query);
+		if ($requestdir) {
+			if (Path::theme($query)) return $query;
+		}
+
+		$p = explode('?', $query, 2);
+		$ff = explode('/', $p[0]);
+
+		if (!$requestdir) {
+			array_push($ff,'');
+		}
+		array_push($ff,'');
+		
+		do {
+			array_pop($ff);
+			$ff[sizeof($ff)-1] = 'index.php';
+			$p[0] = implode('/', $ff);
+			$query = implode('?', $p);
+
+			if (!Path::theme($query)) {
+				$ff[sizeof($ff)-1] = 'index.html';
+				$p[0] = implode('/', $ff);
+				$query = implode('?', $p);
+
+			}
+		} while (!Path::theme($query) && sizeof($ff)>2);
+
+		
+		if (Path::theme($query)) return $query;
 	}
 	private static function redirect($src)
 	{
