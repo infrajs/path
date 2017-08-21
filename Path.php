@@ -107,7 +107,8 @@ class Path {
 	}
 	public static function themeq($query) {
 		$requestdir = Path::isdir($query);
-		if ($requestdir) {
+
+		if (!$requestdir) {
 			if (Path::theme($query)) return $query;
 		}
 
@@ -146,7 +147,6 @@ class Path {
 	}
 	public static function go($query)
 	{
-
 		$query = Path::theme($query);
 
 		if (!$query) {
