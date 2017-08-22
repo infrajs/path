@@ -80,7 +80,7 @@ class Path {
 
 				
 				$query = Path::themeq($query);
-				if ($query) Path::go($query);
+				if ($query) Path::_go($query);
 
 
 				
@@ -98,7 +98,7 @@ class Path {
 						}
 					}
 					if (Path::theme($file)) { //Если есть index.php в папке или просто указанный файл есть
-						Path::go($file);
+						Path::_go($file);
 					}
 				}
 			}
@@ -109,7 +109,7 @@ class Path {
 		$requestdir = Path::isdir($query);
 
 		if (!$requestdir) {
-			if (Path::theme($query)) return $query;
+			if (Path::theme($query)) return Path::theme($query);
 		}
 
 		$p = explode('?', $query, 2);
@@ -135,7 +135,7 @@ class Path {
 		} while (!Path::theme($query) && sizeof($ff)>2);
 
 		
-		if (Path::theme($query)) return $query;
+		if (Path::theme($query)) return Path::theme($query);
 	}
 	private static function redirect($src)
 	{
@@ -145,7 +145,19 @@ class Path {
 		header('Location: ./'.$root.$src, true, 301);
 		exit;
 	}
-	public static function go($query)
+	public static function go($src)
+	{
+		$query = Path::themeq($src);
+		if (!$query) {
+			http_response_code(404);
+			return;
+		}
+		$_SERVER['REQUEST_URI'] = '/'.$src;
+
+		return static::inc($query);
+	}
+	
+	public static function _go($query)
 	{
 		$query = Path::theme($query);
 
@@ -236,8 +248,7 @@ class Path {
 		$_REQUEST = array_merge($_GET, $_POST);
 		$_SERVER['QUERY_STRING'] = $getstr;
 
-		include getcwd().'/'.$path; //После подключения скрипта работа останавливается. Возвращать старые значения не нужно.
-		return true;
+		return include getcwd().'/'.$path;
 	}
 	public static function theme($src)
 	{
