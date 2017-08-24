@@ -25,6 +25,7 @@ class Path {
 	 * Path::init($query)
 	 * $query может взять из QUERY_STRING или из URI_REQUEST если используется modrewrite
 	 * Если в $query начинается с символов ./ или -~! будет проверка файла на доступность и переадресация на него
+	 * @return (bool) найдено соответствие или нет
 	 **/
 	public static function init()
 	{
@@ -44,6 +45,7 @@ class Path {
 			if ( $res['request2ch'] || Path::theme($res['request2']) ) {
 				if($res['param2']) Path::redirect($res['request2'].'?'.$res['param2']);
 				else Path::redirect($res['request2']);
+				return true;
 			}
 
 
@@ -58,6 +60,7 @@ class Path {
 				//Чтобы работали старые ссылки
 				if($res['param2']) Path::redirect($res['request2'].'?'.$res['param2']);
 				else Path::redirect($res['request2']);
+				return true;
 			}
 			
 			//exit;
@@ -78,7 +81,10 @@ class Path {
 
 				//файл не проверяем. отсутствует всёравно идём в go
 				$src = Path::themeq($query);
-				if ($src) Path::go($query);
+				if ($src) {
+					Path::go($query);
+					return true;
+				}
 
 
 				
@@ -97,10 +103,11 @@ class Path {
 					}
 					if (Path::theme($file)) { //Если есть index.php в папке или просто указанный файл есть
 						Path::_go($file);
+						return true;
 					}
 				}
 			}
-			return $query;
+			return false;
 		});
 	}
 	public static function themeq($query) {
