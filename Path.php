@@ -73,14 +73,12 @@ class Path {
 			}
 			
 
-				
+			$query = $res['query'];
 			if ( $res['requestch'] ) { //Есть специальный символ в запросе
-				//файл не проверяем. отсутствует всёравно идём в go
-				$query = $res['query'];
 
-				
-				$query = Path::themeq($query);
-				if ($query) Path::_go($query);
+				//файл не проверяем. отсутствует всёравно идём в go
+				$src = Path::themeq($query);
+				if ($src) Path::go($query);
 
 
 				
@@ -88,11 +86,11 @@ class Path {
 
 				if ($file) { //Если файл отсутствует проходим дальше
 					if ($res['requestdir']) {
-						$p=explode('?', $res['query'], 2);
+						$p=explode('?', $query, 2);
 						$p[0] .='index.php';
 						$file = implode('?', $p);
 						if (!Path::theme($file)) {
-							$p = explode('?', $res['query'], 2);
+							$p = explode('?', $query, 2);
 							$p[0] .= 'index.html';
 							$file = implode('?', $p);
 						}
@@ -102,7 +100,7 @@ class Path {
 					}
 				}
 			}
-			return $res['query'];
+			return $query;
 		});
 	}
 	public static function themeq($query) {
