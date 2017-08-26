@@ -159,7 +159,13 @@ class Path {
 		}
 		$_SERVER['REQUEST_URI'] = '/'.$src;
 
-		return static::inc($query);
+		$ext = static::getExt($query);
+		$isdir = static::isdir($query);
+		if ($isdir || $ext=='php') {
+			static::inc($query);
+		} else {
+			Path::redirect($query);
+		}
 	}
 	
 	public static function _go($query)
