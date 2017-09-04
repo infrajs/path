@@ -112,7 +112,9 @@ class Path {
 	}
 	public static function themeq($query) {
 		$requestdir = Path::isdir($query);
-
+		$requestch = in_array($query{0}, array('-', '~', '!'));
+		
+		if (!$requestch) return Path::theme($query);
 		if (!$requestdir) {
 			if (Path::theme($query)) return Path::theme($query);
 		}
@@ -131,13 +133,13 @@ class Path {
 			$p[0] = implode('/', $ff);
 			$query = implode('?', $p);
 
-			if (!Path::theme($query)) {
+			/*if (!Path::theme($query)) {
 				$ff[sizeof($ff)-1] = 'index.html';
 				$p[0] = implode('/', $ff);
 				$query = implode('?', $p);
 
-			}
-		} while (!Path::theme($query) && sizeof($ff)>2);
+			}*/
+		} while (!Path::theme($query) && sizeof($ff) > 2);
 
 		
 		if (Path::theme($query)) return Path::theme($query);
