@@ -28,8 +28,9 @@
 ```php
 if (!is_file('vendor/autoload.php')) {
 	chdir('../../../'); //Согласно фактическому расположению файла
-	require_once('vendor/autoload.php');
 }
+//Подключаемый скрипт из корня может работать без autoload.php и правильная рабочая дирректория не гарантирует что autoload.php уже подключен
+require_once('vendor/autoload.php'); 
 ```
 
 ## Требуется настройка modrewrite в .htaccess
