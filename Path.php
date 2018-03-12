@@ -263,79 +263,75 @@ class Path {
 
 		return include getcwd().'/'.$path;
 	}
+	public static $paths = array();
+	public static function themesearch($str) {
+		$conf = Path::$conf;
+		if (!$str) return false;
+		
+		$is_fn = (mb_substr($str, mb_strlen($str) - 1, 1) == '/' || in_array($str,array('-', '~', '!'))) ? 'is_dir' : 'is_file';
+		
+		$ch = mb_substr($str, 0, 1);
+
+
+
+		if ($ch == '~') {
+			$str = mb_substr($str, 1);
+			$fstr = Path::tofs($str);
+			if ($is_fn($conf['data'].$fstr)) return $conf['data'].$str;
+		} else if ($ch == '-') {
+			$str = mb_substr($str, 1);
+			$fstr = Path::tofs($str);
+			if ($is_fn($fstr)) return $str; //ПОИСК в корне
+			
+			$p = explode('/', $fstr); //file.ext folder/ folder/file.ext folder/dir/file.ext
+			
+
+			
+			
+			if ($p[0] == 'index') {
+				array_shift($p);
+				$s = implode('/',$p);
+				if ($is_fn($s)) return Path::toutf($s);
+			} else {
+				$s = 'index/'.$fstr;
+				if ($is_fn($s)) return Path::toutf($s);
+			}
+			
+
+			if (sizeof($p) > 1) { //ПОИСК clutch
+				if (!empty($conf['clutch'][$p[0]])) {
+					foreach ($conf['clutch'][$p[0]] as $dir) {
+						if ($is_fn($dir.$fstr)) return $dir.$str;
+					}
+				}
+			}
+			
+			foreach ($conf['search'] as $dir) { //ПОИСК search
+				if ($is_fn($dir.$fstr)) return $dir.$str;
+			}
+		} else if ($ch == '!') {
+			$str = mb_substr($str, 1);
+			$fstr = Path::tofs($str);
+			if ($is_fn($conf['cache'].$fstr)) return $conf['cache'].$str;
+		} else {
+			//Проверка что путь уже правильный... происходит когда нет звёздочки... Неопределённость может возникнуть только с явными путями
+			//if($is_fn($str))return $str;//Относительный путь в первую очередь, если повторный вызов для пути попадём сюда
+			
+			$fstr = Path::tofs($str);
+			if ($is_fn($fstr)) return $str;
+		}
+		return false;
+	}
 	public static function theme($src)
 	{
 		$p=explode('?', $src, 2);
 		$query = (sizeof($p) == 2) ? '?'.$p[1] : '';
-		$args = array($p[0]);
-		$src = Once::exec(__FILE__.'Path::theme', function ($str) {
-			
-			//Повторно для адреса не работает Путь только отностельно корня сайта или со звёздочкой
-			//Скрытые файлы доступны
-
-			$str = Path::toutf($str);
-			$conf = Path::$conf;
-			if (!$str) return false;
-			
-			
-			$is_fn = (mb_substr($str, mb_strlen($str) - 1, 1) == '/' || in_array($str,array('-', '~', '!'))) ? 'is_dir' : 'is_file';
-			
-
-			$ch = mb_substr($str, 0, 1);
-
-
-
-			if ($ch == '~') {
-				$str = mb_substr($str, 1);
-				$str = Path::tofs($str);
-				if ($is_fn($conf['data'].$str)) return $conf['data'].$str;
-			} else if ($ch == '-') {
-				$str = mb_substr($str, 1);
-				$str = Path::tofs($str);
-				
-				$p = explode('/', $str); //file.ext folder/ folder/file.ext folder/dir/file.ext
-				
-
-				
-				if ($is_fn($str)) return $str; //ПОИСК в корне
-				if ($p[0] == 'index') {
-					array_shift($p);
-					$s = implode('/',$p);
-					if ($is_fn($s)) return $s;
-				} else {
-					$s = 'index/'.$str;
-					if ($is_fn($s)) return $s;
-				}
-				
-
-				if (sizeof($p) > 1) { //ПОИСК clutch
-					if (!empty($conf['clutch'][$p[0]])) {
-						foreach ($conf['clutch'][$p[0]] as $dir) {
-							if ($is_fn($dir.$str)) return $dir.$str;
-						}
-					}
-				}
-				
-				foreach ($conf['search'] as $dir) { //ПОИСК search
-					if ($is_fn($dir.$str)) return $dir.$str;
-				}
-			} else if ($ch == '!') {
-				$str = mb_substr($str, 1);
-				$str = Path::tofs($str);
-				if ($is_fn($conf['cache'].$str)) return $conf['cache'].$str;
-			} else {
-				//Проверка что путь уже правильный... происходит когда нет звёздочки... Неопределённость может возникнуть только с явными путями
-				//if($is_fn($str))return $str;//Относительный путь в первую очередь, если повторный вызов для пути попадём сюда
-				
-				$str = Path::tofs($str);
-				if ($is_fn($str)) return $str;
-			}
-			return false;
-		}, $args);
-
+		$str = $p[0];
+		$str = Path::toutf($str);
 		
-
-		if(!$src) return false;
+		if (!isset(Path::$paths[$str])) Path::$paths[$str] = Path::themesearch($str);
+		if (!Path::$paths[$str]) return false;
+		$src = Path::tofs(Path::$paths[$str]);
 		return $src.$query;
 	}
 	public static function toutf($str)
@@ -395,9 +391,9 @@ class Path {
 	public static function mkdir($isrc) //forFS
 	{
 		if (!is_file('vendor/autoload.php')) throw new \Exception("You should setting chdir() on site root directory with vendor/ folder"); 
-		$conf=static::$conf;
-		if(!$conf['fs']) return;
-		$src=static::resolve($isrc);
+		$conf = static::$conf;
+		if (!$conf['fs']) return;
+		$src = static::resolve($isrc);
 		if (!is_dir($src)) {
 			$r = mkdir($src);
 			if (!$r) throw new \Exception('Не удалось создать папку '.$src);
