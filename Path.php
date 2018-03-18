@@ -29,7 +29,7 @@ class Path {
 	 **/
 	public static function init()
 	{
-		return Once::exec('infrajs::Path::init', function () {
+		return Once::func( function () {
 			$res = URN::parse();
 			
 			$res['request2ch'] = $res['request2'] ? in_array($res['request2']{0}, array('-', '~', '!')) : false;
@@ -322,9 +322,16 @@ class Path {
 		}
 		return false;
 	}
+	public static function clear($src) {
+		$p = explode('?', $src, 2);
+		$query = (sizeof($p) == 2) ? '?'.$p[1] : '';
+		$str = $p[0];
+		$str = Path::toutf($str);
+		unset(Path::$paths[$str]);
+	}
 	public static function theme($src)
 	{
-		$p=explode('?', $src, 2);
+		$p = explode('?', $src, 2);
 		$query = (sizeof($p) == 2) ? '?'.$p[1] : '';
 		$str = $p[0];
 		$str = Path::toutf($str);
@@ -397,7 +404,7 @@ class Path {
 		if (!is_dir($src)) {
 			$r = mkdir($src);
 			if (!$r) throw new \Exception('Не удалось создать папку '.$src);
-			Once::clear('Path::theme', [$isrc]);
+			Path::clear($isrc);
 			return $src;
 		}
 		return $src;
@@ -449,7 +456,7 @@ class Path {
 	public static function req($path)
 	{
 		$args=array($path);
-		Once::exec('Path::req', function($path) {
+		Once::func(function($path) {
 			$rpath = Path::theme($path);
 			if (!$rpath) {
 				echo '<pre>';
