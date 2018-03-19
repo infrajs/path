@@ -29,7 +29,7 @@ class Path {
 	 **/
 	public static function init()
 	{
-		return Once::func( function () {
+		//return Once::func( function () {
 			$res = URN::parse();
 			
 			$res['request2ch'] = $res['request2'] ? in_array($res['request2']{0}, array('-', '~', '!')) : false;
@@ -108,7 +108,7 @@ class Path {
 				}
 			}
 			return false;
-		});
+		//});
 	}
 	public static function themeq($query) {
 		$requestdir = Path::isdir($query);
@@ -455,15 +455,15 @@ class Path {
 	}
 	public static function req($path)
 	{
-		$args=array($path);
-		Once::func(function($path) {
+		//$args=array($path);
+		//Once::func(function($path) {
 			$rpath = Path::theme($path);
 			if (!$rpath) {
 				echo '<pre>';
 				throw new \Exception('Path::req - не найден путь '.$path);
 			}
 			require_once './'.$rpath;//Просто require позволяет загрузить самого себя. А мы текущий скрипт не добавляем в список подключённых
-		}, $args);
+		//}, $args);
 	}
 	/**
 	 * Удалить (true) или очистить дирректорию (false)
