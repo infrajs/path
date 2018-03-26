@@ -361,7 +361,7 @@ class Path {
 		}
 		return $str;
 	}
-	public static function encode($str) //forFS
+	public static function encode($str, $space = false) //forFS
 	{
 		//Начинаться и заканчиваться пробелом не может
 		//два пробела не могут идти подряд
@@ -384,7 +384,7 @@ class Path {
 		$str = preg_replace('/\s+$/', '', $str);
 		$str = preg_replace('/\s+/', ' ', $str);
 		//if (empty(Path::$conf['space'])) {
-			$str = preg_replace('/\s/', '-', $str);
+		if (!$space) $str = preg_replace('/\s/', '-', $str);
 		//}
 
 		if (mb_strlen($str) > 50) $str = md5($str);//У файловых систем есть ограничение на длину имени файла

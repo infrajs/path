@@ -5,7 +5,7 @@ window.Path = {
 		if (/^\//.test(path)) return path;
 		return '/'+path;
 	},
-	encode: function (str) //forFS
+	encode: function (str, space) //forFS
 	{
 		//Начинаться и заканчиваться пробелом не может
 		//два пробела не могут идти подряд
@@ -30,8 +30,8 @@ window.Path = {
 
 		var conf = Config.get('path');
 		//if (!conf.space) 
-			str = str.replace(/\s/g, '-');
-		if (str.lenght > 50) console.error('Слишком длинная строка Path.encode',str);
+		if (!space) str = str.replace(/\s/g, '-');
+		if (str.lenght > 50) console.error('Слишком длинная строка Path.encode', str);
 		return str;
 	}
 }
