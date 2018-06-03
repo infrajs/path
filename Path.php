@@ -99,6 +99,11 @@ class Path {
 							$p = explode('?', $query, 2);
 							$p[0] .= 'index.html';
 							$file = implode('?', $p);
+							if (!Path::theme($file)) {
+								$p = explode('?', $query, 2);
+								$p[0] .= 'index.htm';
+								$file = implode('?', $p);
+							}
 						}
 					}
 					if (Path::theme($file)) { //Если есть index.php в папке или просто указанный файл есть
