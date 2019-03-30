@@ -514,12 +514,12 @@ class Path {
 	public static function isNest($root, $dir) {
 		$src = Path::theme($dir);
 		if (!$src) return false;
-		$src = realpath($src);
-		if (!$src) return false;
+		//$src = realpath($src);// - не работает с символическими ссылками, всплывает оригинальный путь
+		//if (!$src) return false;
 		$home = Path::theme($root);
 		if (!$home) return false;
-		$home = realpath($home);
-		if (!$home) return false;
+		//$home = realpath($home);
+		//if (!$home) return false;
 		if (preg_match('/\\'.DIRECTORY_SEPARATOR.'\./',$home)) return false;
 		if (preg_match('/\\'.DIRECTORY_SEPARATOR.'\./',$src)) return false;
 		$p = explode($home, $src, 2);
