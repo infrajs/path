@@ -355,7 +355,7 @@ class Path {
 	}
 	public static function tofs($str)
 	{
-		if (isset($_SERVER['WINDIR'])){
+		/*if (isset($_SERVER['WINDIR'])){
 			if (strstr($str, '‐')!==false) {
 				$str = str_replace('‐', '-', $str);
 				//die('"'.$str. '" - В строке содержится некорректный символ "-".');
@@ -363,7 +363,7 @@ class Path {
 			}
 			$str = Path::toutf($str);
 			$str = iconv('UTF-8', 'CP1251', $str);
-		}
+		}*/
 		return $str;
 	}
 	public static function encode($str, $space = false) //forFS
