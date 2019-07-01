@@ -10,7 +10,7 @@ window.Path = {
 		//Описание в php файле
 
 		var conf = Config.get('path');
-
+		str = str.replace(/[\+]/g,'p');
 		str = str.replace(/[\'\`"\.×,№%\*<>\‐\-\'"\|\;\:\/\\\\#\!\?\$&\s]/g,' ');
 		if (!conf.parenthesis) str = str.replace(/[\(\)]/g,' ');
 
