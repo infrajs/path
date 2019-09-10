@@ -396,8 +396,8 @@ class Path {
 		//if (empty(Path::$conf['space'])) {
 		if (!$space) $str = preg_replace('/\s/', '-', $str);
 		//}
-
-		if (mb_strlen($str) > 50) $str = md5($str);//У файловых систем есть ограничение на длину имени файла
+		if (Path::$conf['encodelower']) $str = mb_strtolower($str);
+		if (mb_strlen($str) > Path::$conf['encodelimit']) $str = md5($str);//У файловых систем есть ограничение на длину имени файла
 		return $str;
 	}
 	public static function getExt($src){
