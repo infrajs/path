@@ -355,7 +355,7 @@ class Path {
 	}
 	public static function tofs($str)
 	{
-		if (isset($_SERVER['WINDIR'])){
+		if (!empty(Path::$conf['cp1251']) && isset($_SERVER['WINDIR'])){
 			if (strstr($str, '‐')!==false) {
 				$str = str_replace('‐', '-', $str);
 				//die('"'.$str. '" - В строке содержится некорректный символ "-".');
@@ -373,7 +373,7 @@ class Path {
 		//символов ' " /\#&?$ быть не может удаляются
 		//& этого символа нет, значит не может быть htmlentities
 		//символов <> удаляются из-за безопасности
-		//В адресной строке + заменяется на пробел, значит и тут удаляем
+		
 		//Виндовс запрещает символы в именах файлов  \/:*?"<>|
 		//Точка (.) Используется в скртиптах name.prop.value и такое значени может браться из адреса. pro.p.value точка в имени поломает это
 		//% приводит к ошибке malfomed URI при попадании в адрес так как там используется decodeURI
@@ -381,7 +381,11 @@ class Path {
 		//() нужно убрать, чтобы работали jquery селекторы
 		//, используется для перечислений в имени файла, одна картинка для нескольких артикулов
 		//× - iconv ругается Detected an illegal character in input string 
-		$str = preg_replace('/[\'\`"\.×,№\+%\*<>‐\-\'"\|\:\/\\\\#\!\?\$&\s]/u', ' ', $str);
+		
+		//В адресной строке + заменяется на пробел, значит и тут удаляем НО
+		//"\+" 23.04.19 + и - должны выдавать разные кодированные значеия. + в id заменяется на plus оставлен как есть
+		$str = preg_replace('/[\+]/u', 'p', $str);
+		$str = preg_replace('/[\'\`"\.×,№%\*<>‐\-\'"\|\;\:\/\\\\#\!\?\$&\s]/u', ' ', $str);
 
 		if (empty(Path::$conf['parenthesis'])) {
 			$str = preg_replace('/[\(\)]/u', ' ', $str);
@@ -393,8 +397,8 @@ class Path {
 		//if (empty(Path::$conf['space'])) {
 		if (!$space) $str = preg_replace('/\s/u', '-', $str);
 		//}
-
-		if (mb_strlen($str) > 50) $str = md5($str);//У файловых систем есть ограничение на длину имени файла
+		if (Path::$conf['encodelower']) $str = mb_strtolower($str);
+		if (mb_strlen($str) > Path::$conf['encodelimit']) $str = md5($str);//У файловых систем есть ограничение на длину имени файла
 		return $str;
 	}
 	public static function getExt($src){
@@ -515,12 +519,12 @@ class Path {
 	public static function isNest($root, $dir) {
 		$src = Path::theme($dir);
 		if (!$src) return false;
-		$src = realpath($src);
-		if (!$src) return false;
+		//$src = realpath($src);// - не работает с символическими ссылками, всплывает оригинальный путь
+		//if (!$src) return false;
 		$home = Path::theme($root);
 		if (!$home) return false;
-		$home = realpath($home);
-		if (!$home) return false;
+		//$home = realpath($home);
+		//if (!$home) return false;
 		if (preg_match('/\\'.DIRECTORY_SEPARATOR.'\./',$home)) return false;
 		if (preg_match('/\\'.DIRECTORY_SEPARATOR.'\./',$src)) return false;
 		$p = explode($home, $src, 2);
