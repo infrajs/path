@@ -384,13 +384,14 @@ class Path {
 		$str = preg_replace('/[\'\`"\.×,№\+%\*<>‐\-\'"\|\:\/\\\\#\!\?\$&\s]/u', ' ', $str);
 
 		if (empty(Path::$conf['parenthesis'])) {
-			$str = preg_replace('/[\(\)]/', ' ', $str);
+			$str = preg_replace('/[\(\)]/u', ' ', $str);
 		}
-		$str = preg_replace('/^\s+/', '', $str);
-		$str = preg_replace('/\s+$/', '', $str);
-		$str = preg_replace('/\s+/', ' ', $str);
+		$str = preg_replace('/\s+/u', ' ', $str);
+		$str = preg_replace('/^\s/u', '', $str);
+		$str = preg_replace('/\s$/u', '', $str);
+		
 		//if (empty(Path::$conf['space'])) {
-		if (!$space) $str = preg_replace('/\s/', '-', $str);
+		if (!$space) $str = preg_replace('/\s/u', '-', $str);
 		//}
 
 		if (mb_strlen($str) > 50) $str = md5($str);//У файловых систем есть ограничение на длину имени файла
