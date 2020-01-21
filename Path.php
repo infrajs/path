@@ -406,7 +406,7 @@ class Path {
 		if (!$space) $str = preg_replace('/\s/u', '-', $str);
 		//}
 		
-		if (mb_strlen($str) > Path::$conf['encodelimit']) $str = md5($str);//У файловых систем есть ограничение на длину имени файла
+		if (!Path::$conf['translit'] && (mb_strlen($str) > Path::$conf['encodelimit'])) $str = md5($str);//У файловых систем есть ограничение на длину имени файла
 		return $str;
 	}
 	public static function getExt($src){
