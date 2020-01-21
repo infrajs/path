@@ -366,6 +366,10 @@ class Path {
 		}
 		return $str;
 	}
+	public static function translit($s) {
+		$s = strtr($s, array('а'=>'a','б'=>'b','в'=>'v','г'=>'g','д'=>'d','е'=>'e','ё'=>'e','ж'=>'j','з'=>'z','и'=>'i','й'=>'y','к'=>'k','л'=>'l','м'=>'m','н'=>'n','о'=>'o','п'=>'p','р'=>'r','с'=>'s','т'=>'t','у'=>'u','ф'=>'f','х'=>'h','ц'=>'c','ч'=>'ch','ш'=>'sh','щ'=>'shch','ы'=>'y','э'=>'e','ю'=>'yu','я'=>'ya','ъ'=>'','ь'=>''));
+		return $s; // возвращаем результат
+	}
 	public static function encode($str, $space = false) //forFS
 	{
 		//Начинаться и заканчиваться пробелом не может
@@ -390,6 +394,10 @@ class Path {
 		if (empty(Path::$conf['parenthesis'])) {
 			$str = preg_replace('/[\(\)]/u', ' ', $str);
 		}
+		
+		if (Path::$conf['encodelower'] || Path::$conf['translit']) $str = mb_strtolower($str);
+		if (Path::$conf['translit']) $str = Path::translit($str);
+
 		$str = preg_replace('/\s+/u', ' ', $str);
 		$str = preg_replace('/^\s/u', '', $str);
 		$str = preg_replace('/\s$/u', '', $str);
@@ -397,7 +405,7 @@ class Path {
 		//if (empty(Path::$conf['space'])) {
 		if (!$space) $str = preg_replace('/\s/u', '-', $str);
 		//}
-		if (Path::$conf['encodelower']) $str = mb_strtolower($str);
+		
 		if (mb_strlen($str) > Path::$conf['encodelimit']) $str = md5($str);//У файловых систем есть ограничение на длину имени файла
 		return $str;
 	}

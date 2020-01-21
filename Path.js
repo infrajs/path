@@ -5,6 +5,24 @@ window.Path = {
 		if (/^\//.test(path)) return path;
 		return '/'+path;
 	},
+	translit: function ( str ) {
+	    var ru = {
+	        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 
+	        'е': 'e', 'ё': 'e', 'ж': 'j', 'з': 'z', 'и': 'i', 'й': 'i', 
+	        'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 
+	        'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 
+	        'ф': 'f', 'х': 'h', 'ц': 'c', 'ч': 'ch', 'ш': 'sh', 
+	        'щ': 'shch', 'ы': 'y', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+	    }, n_str = [];
+	    
+	    str = str.replace(/[ъь]+/g, '');
+	    
+	    for ( var i = 0; i < str.length; ++i ) {
+	       n_str.push(ru[ str[i] ] || str[i]);
+	    }
+	    
+	    return n_str.join('');
+	},
 	encode: function (str, space) //forFS
 	{
 		//Описание в php файле
@@ -14,6 +32,9 @@ window.Path = {
 		str = str.replace(/[\'\`"\.×,№%\*<>\‐\-\–\'"\|\;\:\/\\\\#\!\?\$&\s]/g,' ');
 		if (!conf.parenthesis) str = str.replace(/[\(\)]/g,' ');
 
+		if (conf.encodelower || conf.translit) str = str.toLowerCase();
+		if (conf.translit) str = Path.translit(str);
+
 		str = str.replace(/^\s+/g,'');
 		str = str.replace(/\s+$/g,'');
 		str = str.replace(/\s+/g,' ');
@@ -21,7 +42,7 @@ window.Path = {
 		var conf = Config.get('path');
 		//if (!conf.space) 
 		if (!space) str = str.replace(/\s/g, '-');
-		if (conf.encodelower) str = str.toLowerCase();
+
 		if (str.lenght > conf.encodelimit) console.error('Слишком длинная строка Path.encode', str);
 		return str;
 	}
