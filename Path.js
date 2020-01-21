@@ -43,7 +43,7 @@ window.Path = {
 		//if (!conf.space) 
 		if (!space) str = str.replace(/\s/g, '-');
 
-		if (str.lenght > conf.encodelimit) console.error('Слишком длинная строка Path.encode', str);
+		if (!conf.translit && (str.lenght > conf.encodelimit)) console.error('Слишком длинная строка Path.encode', str);
 		return str;
 	}
 }

@@ -1,10 +1,11 @@
 {
 	"conf":"\\infrajs\\path\\Path",
 	"js":["URN.js","Path.js"],
-	"pub":["space","parenthesis","encodelower","encodelimit"],
+	"pub":["space","parenthesis","encodelower","encodelimit","translit"],
 	"fs": true,
 	"encodelimit":50,
 	"encodelower":false,
+	"translit":false,
 	"cp1251":false,
 	"cache":"cache/",
 	"data":"data/",
