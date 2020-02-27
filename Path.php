@@ -32,7 +32,7 @@ class Path {
 		//return Once::func( function () {
 			$res = URN::parse();
 			
-			$res['request2ch'] = $res['request2'] ? in_array($res['request2']{0}, array('-', '~', '!')) : false;
+			$res['request2ch'] = $res['request2'] ? in_array($res['request2'][0], array('-', '~', '!')) : false;
 				
 				
 			/*
@@ -55,7 +55,7 @@ class Path {
 				site/-asdf?login = site/-asdf?login
 				site/catalog?contacts = site/contacts
 			*/
-			$res['requestch'] = $res['request'] ? in_array($res['request']{0}, array('-', '~', '!')) : false;
+			$res['requestch'] = $res['request'] ? in_array($res['request'][0], array('-', '~', '!')) : false;
 			if(!$res['requestch']&&!Path::theme($res['request'])&&$res['request2']) {
 				//Чтобы работали старые ссылки
 				if($res['param2']) Path::redirect($res['request2'].'?'.$res['param2']);
@@ -117,7 +117,7 @@ class Path {
 	}
 	public static function themeq($query) {
 		$requestdir = Path::isdir($query);
-		$requestch = in_array($query{0}, array('-', '~', '!'));
+		$requestch = in_array($query[0], array('-', '~', '!'));
 		
 		if (!$requestch) return Path::theme($query);
 		if (!$requestdir) {
@@ -186,7 +186,7 @@ class Path {
 
 		$p=explode('?', $query, 2);
 		$queryfile=$p[0];
-		if ($p[0] && (preg_match("/\/\./", $p[0]) || ($p[0]{0} == '.' && $p[0]{1} != '/'))) {
+		if ($p[0] && (preg_match("/\/\./", $p[0]) || ($p[0][0] == '.' && $p[0]{1} != '/'))) {
 			http_response_code(403); //Forbidden
 			exit;
 		}
@@ -435,7 +435,7 @@ class Path {
 	public static function resolve($src) 
 	{
 		if (!$src) return $src;
-		$ch=$src{0};
+		$ch=$src[0];
 		if ($ch == '-') throw new \Exception('Symbol - contain multiple paths and cant be resolving without request to the filesystem. Use theme() or fix src');
 		else if($ch == '~') $src = static::$conf['data'].substr($src, 1);	
 		else if($ch == '!') $src = static::$conf['cache'].substr($src, 1);
