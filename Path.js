@@ -1,4 +1,4 @@
-if(!window.infra) infra = {};
+if(!window.infra) window.infra = {};
 window.Path = {
 	theme: function (path) {
 		if (/^http/.test(path)) return path;
