@@ -2,7 +2,6 @@
 namespace infrajs\path;
 
 use infrajs\once\Once;
-use infrajs\nostore\Nostore;
 use infrajs\config\Config;
 
 class Path {
@@ -32,37 +31,40 @@ class Path {
 		//return Once::func( function () {
 			$res = URN::parse();
 			
-			$res['request2ch'] = $res['request2'] ? in_array($res['request2'][0], array('-', '~', '!')) : false;
-				
-				
+			
+
+			//$res['request2ch'] = $res['request2'] ? in_array($res['request2'][0], array('-', '~', '!')) : false;	
 			/*
 				Ситуация
 				site.ru/adsf?-admin/
 				site.ru/sadf?vendor/infrajs/admin/
 				site.ru/asdf?vendor/infrajs/admin/index.php
-			*/
 			
-			if ( $res['request2ch'] || Path::theme($res['request2']) ) {
+				Устарело
+				if ( $res['request2ch'] || Path::theme($res['request2']) ) {
 				if($res['param2']) Path::redirect($res['request2'].'?'.$res['param2']);
 				else Path::redirect($res['request2']);
 				return true;
-			}
-
+			}*/
 
 			/*
 				Ситуация
 				site/?login = site/login
 				site/-asdf?login = site/-asdf?login
 				site/catalog?contacts = site/contacts
+				
+				Устарело
+				$res['requestch'] = $res['request'] ? in_array($res['request'][0], array('-', '~', '!')) : false;
+				if(!$res['requestch']&&!Path::theme($res['request'])&&$res['request2']) {
+					//Чтобы работали старые ссылки
+					if($res['param2']) Path::redirect($res['request2'].'?'.$res['param2']);
+					else Path::redirect($res['request2']);
+					return true;
+				}
 			*/
 			$res['requestch'] = $res['request'] ? in_array($res['request'][0], array('-', '~', '!')) : false;
-			if(!$res['requestch']&&!Path::theme($res['request'])&&$res['request2']) {
-				//Чтобы работали старые ссылки
-				if($res['param2']) Path::redirect($res['request2'].'?'.$res['param2']);
-				else Path::redirect($res['request2']);
-				return true;
-			}
-			
+
+	
 			//exit;
 			//$res['request2dir'] = Path::isdir($res['request2']);
 			//$res['request2ext'] = Path::getExt($res['request2']);
@@ -151,7 +153,6 @@ class Path {
 	}
 	private static function redirect($src)
 	{
-		Nostore::pub();
 		$root = URN::getRoot();
 		$src = Path::toutf($src);
 		header('Location: ./'.$root.$src, true, 301);
