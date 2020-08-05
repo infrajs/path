@@ -6,7 +6,6 @@
 		"psr-4": { "infrajs\\path\\": "" }
 	},
 	"require":{
-		"infrajs/once":"~1",
 		"infrajs/nostore":"~1"
 	}
 }
