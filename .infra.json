@@ -5,7 +5,7 @@
 	"fs": true,
 	"encodelimit":50,
 	"encodelower":false,
-	"translit":false,
+	"translit":true,
 	"cp1251":false,
 	"cache":"cache/",
 	"data":"data/",
