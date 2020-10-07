@@ -94,7 +94,8 @@ class Path {
 
 				if ($file) { //Если файл отсутствует проходим дальше
 					if ($res['requestdir']) {
-						$p=explode('?', $query, 2);
+						$p = explode('?', $query, 2);
+						if (empty($p[0])) return false;
 						$p[0] .='index.php';
 						$file = implode('?', $p);
 						if (!Path::theme($file)) {
