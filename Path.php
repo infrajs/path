@@ -156,6 +156,12 @@ class Path {
 	{
 		$root = URN::getRoot();
 		$src = Path::toutf($src);
+		
+		//10.10.2020 Нельзя сделать переадресацию с кирилицай, происходит подмена кирилических символово на ÐºÐ¸ÑÐ¸Ð»Ð»Ð¸ÑÐ°. NetAngels. Проблема осталась параметры GET сейчас не кодируются
+		$r = explode("?", $src, 2);
+		$r[0] = implode("/", array_map("rawurlencode", explode("/", $r[0])));
+		$src = implode("?", $r);
+
 		header('Location: ./'.$root.$src, true, 301);
 		exit;
 	}
