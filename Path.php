@@ -194,7 +194,7 @@ class Path {
 
 		$p=explode('?', $query, 2);
 		$queryfile=$p[0];
-		if ($p[0] && (preg_match("/\/\./", $p[0]) || ($p[0][0] == '.' && $p[0]{1} != '/'))) {
+		if ($p[0] && (preg_match("/\/\./", $p[0]) || ($p[0][0] == '.' && $p[0][1] != '/'))) {
 			http_response_code(403); //Forbidden
 			exit;
 		}
