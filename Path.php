@@ -265,14 +265,14 @@ class Path {
 		$p=explode('?', $src, 2);
 		$path=$p[0];
 
-		$query = (sizeof($p) == 2) ? '?'.$p[1] : '';
-		$getstr = preg_replace("/^\?/", '', $query);
-		parse_str($getstr, $get);
-		if (!$get) $get = array();
-		$_GET = $get;
-		if (!isset($_POST)) $_POST = array();
-		$_REQUEST = array_merge($_GET, $_POST);
-		$_SERVER['QUERY_STRING'] = $getstr;
+		// $query = (sizeof($p) == 2) ? '?'.$p[1] : '';
+		// $getstr = preg_replace("/^\?/", '', $query);
+		// parse_str($getstr, $get);
+		// if (!$get) $get = array();
+		// $_GET = $get;
+		// if (!isset($_POST)) $_POST = array();
+		// $_REQUEST = array_merge($_GET, $_POST);
+		// $_SERVER['QUERY_STRING'] = $getstr;
 
 		return include getcwd().'/'.$path;
 	}
