@@ -6,6 +6,8 @@ let Path = {
 	},
 	translit: function (str) {
 		var ru = {
+			'α': 'a', 'β': 'b', 'γ': 'y', 'δ': 'd', 
+			'³': '3', '²': '3',
 			'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd',
 			'е': 'e', 'ё': 'e', 'ж': 'j', 'з': 'z', 'и': 'i', 'й': 'y',
 			'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o',
@@ -28,7 +30,7 @@ let Path = {
 
 		var conf = Config.get('path');
 		str = str.replace(/[\+]/g, 'p');
-		str = str.replace(/[\'\`"\.×,№%\*<>\‐\-\–\'"\|\;\:\/\\\\#\!\?\$&\s]/g, ' ');
+		str = str.replace(/[\˚\'\`"\.×,№%\*<>\‐\-\–\—\'"\|\;\:\/\\\\#\!\?\$&\s]/g, ' ');
 		if (!conf.parenthesis) str = str.replace(/[\(\)]/g, ' ');
 
 		if (conf.encodelower || conf.translit) str = str.toLowerCase();
